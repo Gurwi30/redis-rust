@@ -15,7 +15,7 @@ fn main() {
 
                 loop {
                     let reads = stream.read(&mut [0; 256]).unwrap();
-                    if reads <= 0 {
+                    if reads == 0 {
                         break;
                     }
                 }
