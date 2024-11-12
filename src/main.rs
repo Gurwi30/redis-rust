@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 
+use std::fmt::format;
 use std::io::{Read, Write};
 use std::net::SocketAddr;
 use tokio::net::{TcpListener, TcpStream};
@@ -8,7 +9,7 @@ const DEFAULT_PORT: u16 = 6379;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:8080").await?;
+    let listener = TcpListener::bind(format!("127.0.0.1:{DEFAULT_PORT}")).await?;
 
     // for stream in listener.accept().await {
     //     match stream {
