@@ -35,7 +35,6 @@ async fn main() -> std::io::Result<()> {
 
         Err(e) => {
             println!("An error occurred: {:?}", e);
-            Err(e);
         }
     }
 
