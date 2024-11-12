@@ -13,18 +13,19 @@ const DEFAULT_PORT: u16 = 6379;
 async fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind(format!("127.0.0.1:{DEFAULT_PORT}")).await?;
 
-    match listener.accept().await {
-        Ok((_socket, addr)) => {
-            println!("Connection established! {addr}...");
-            handle_client(_socket).await;
+    loop {
+        match listener.accept().await {
+            Ok((_socket, addr)) => {
+                println!("Connection established! {addr}...");
+                handle_client(_socket).await;
+            }
+
+            Err(e) => {
+                println!("An error occurred: {:?}", e);
+            }
         }
 
-        Err(e) => {
-            println!("An error occurred: {:?}", e);
-        }
     }
-
-    Ok(())
 }
 
 async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
