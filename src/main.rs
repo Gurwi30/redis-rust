@@ -26,7 +26,7 @@ async fn main() -> std::io::Result<()> {
     match listener.accept().await {
         Ok((_socket, addr)) => {
             println!("Connection established! {addr}...");
-            handle_client(_socket);
+            //handle_client(_socket);
         }
 
         Err(e) => {
