@@ -30,13 +30,15 @@ async fn main() -> std::io::Result<()> {
 
 async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
     tokio::spawn(async move {
-            loop {
-                let reads = stream.read(&mut [0; 256]).await.unwrap();
-                if reads == 0 {
-                    break;
-                }
+        println!("{:?}", stream);
 
-                stream.write(b"+PONG\r\n").await.unwrap();
+        loop {
+            let reads = stream.read(&mut [0; 256]).await.unwrap();
+            if reads == 0 {
+                break;
             }
+
+            stream.write(b"+PONG\r\n").await.unwrap();
+        }
     })
 }
