@@ -38,13 +38,13 @@ async fn main() -> std::io::Result<()> {
 
 }
 
-fn handle_client(mut stream: TcpStream) {
-    loop {
-        let reads = stream.read(&mut [0; 256]).unwrap();
-        if reads == 0 {
-            break;
-        }
-
-        stream.write(b"+PONG\r\n").unwrap();
-    }
-}
+// fn handle_client(mut stream: TcpStream) {
+//     loop {
+//         let reads = stream.read(&mut [0; 256]).unwrap();
+//         if reads == 0 {
+//             break;
+//         }
+//
+//         stream.write(b"+PONG\r\n").unwrap();
+//     }
+// }
