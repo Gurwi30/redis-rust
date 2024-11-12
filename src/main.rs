@@ -1,22 +1,22 @@
 #![allow(unused_imports)]
 use std::net::TcpListener;
 
-fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    println!("Logs from your program will appear here!");
+const DEFAULT_PORT: u16 = 6379;
 
-    // Uncomment this block to pass the first stage
-    //
-    // let listener = TcpListener::bind("127.0.0.1:6379").unwrap();
-    //
-    // for stream in listener.incoming() {
-    //     match stream {
-    //         Ok(_stream) => {
-    //             println!("accepted new connection");
-    //         }
-    //         Err(e) => {
-    //             println!("error: {}", e);
-    //         }
-    //     }
-    // }
+fn main() {
+
+    let listener = TcpListener::bind(("0.0.0.0", DEFAULT_PORT)).unwrap();
+
+    for stream in listener.incoming() {
+        match stream {
+            Ok(_stream) => {
+                println!("Connection established!");
+            }
+
+            Err(e) => {
+                println!("An error occurred: {:?}", e);
+            }
+        }
+    }
+
 }
