@@ -3,7 +3,9 @@
 use std::fmt::format;
 use std::io::{Read, Write};
 use std::net::SocketAddr;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
+use tokio::task::JoinHandle;
 
 const DEFAULT_PORT: u16 = 6379;
 
@@ -24,10 +26,11 @@ async fn main() -> std::io::Result<()> {
     //     }
     // }
 
-    match listener.accept().await {
+
+    match listener.accept().await? {
         Ok((_socket, addr)) => {
             println!("Connection established! {addr}...");
-            //handle_client(_socket);
+            handle_client(_socket).await?;
         }
 
         Err(e) => {
@@ -36,7 +39,19 @@ async fn main() -> std::io::Result<()> {
     }
 
     Ok(())
+}
 
+async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
+    tokio::spawn(async move {
+            loop {
+                let reads = stream.read(&mut [0; 256]).await.unwrap();
+                if reads == 0 {
+                    break;
+                }
+
+                stream.write(b"+PONG\r\n").await.unwrap();
+            }
+    })
 }
 
 // fn handle_client(mut stream: TcpStream) {
