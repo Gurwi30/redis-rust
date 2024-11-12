@@ -13,12 +13,12 @@ fn main() {
             Ok(mut stream) => {
                 println!("Connection established! Responding to ping...");
 
-                loop {
-                    let reads = stream.read(&mut [0; 256]).unwrap();
-                    if reads == 0 {
-                        break;
-                    }
-                }
+                // loop {
+                //     let reads = stream.read(&mut [0; 256]).unwrap();
+                //     if reads == 0 {
+                //         break;
+                //     }
+                // }
 
                 stream.write(b"+PONG\r\n").unwrap();
             }
