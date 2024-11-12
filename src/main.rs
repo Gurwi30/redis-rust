@@ -20,7 +20,7 @@ fn main() {
                     }
                 }
 
-                stream.write_all(b"+PONG\r\n").unwrap()
+                stream.write(b"+PONG\r\n").unwrap();
             }
 
             Err(e) => {
