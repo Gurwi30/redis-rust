@@ -3,6 +3,7 @@
 use std::fmt::format;
 use std::io::{Read, Write};
 use std::net::SocketAddr;
+use std::ptr::read;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::task::JoinHandle;
@@ -31,13 +32,13 @@ async fn main() -> std::io::Result<()> {
 async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
     tokio::spawn(async move {
         loop {
-            let buff = &mut [0; 256];
-            let reads = stream.read(buff).await.unwrap();
+            let buffer = &mut [0; 512];
+            let reads = stream.read(buffer).await.unwrap();
             if reads == 0 {
                 break;
             }
 
-            println!("{:?}", buff);
+            println!("{:?}", String::from_utf8(buffer[..reads].to_vec()).unwrap());
             stream.write(b"+PONG\r\n").await.unwrap();
         }
     })
