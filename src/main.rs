@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use std::io::{Read, Write};
-use std::net::TcpListener;
+use std::net::{TcpListener, TcpStream};
 
 const DEFAULT_PORT: u16 = 6379;
 
@@ -12,16 +12,7 @@ fn main() {
         match stream {
             Ok(mut stream) => {
                 println!("Connection established! Responding to ping...");
-
-                loop {
-                    let reads = stream.read(&mut [0; 256]).unwrap();
-                    if reads == 0 {
-                        break;
-                    }
-
-                    stream.write(b"+PONG\r\n").unwrap();
-                }
-
+                handle_client(&mut stream);
             }
 
             Err(e) => {
@@ -30,4 +21,15 @@ fn main() {
         }
     }
 
+}
+
+fn handle_client(stream: &mut TcpStream) {
+    loop {
+        let reads = stream.read(&mut [0; 256]).unwrap();
+        if reads == 0 {
+            break;
+        }
+
+        stream.write(b"+PONG\r\n").unwrap();
+    }
 }
