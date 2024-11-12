@@ -37,7 +37,7 @@ async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
                 break;
             }
 
-            println!("{}", buff.iter().collect::<String>());
+            println!("{:?}", buff);
             stream.write(b"+PONG\r\n").await.unwrap();
         }
     })
