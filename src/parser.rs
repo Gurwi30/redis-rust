@@ -84,6 +84,8 @@ fn parse_array(buffer: BytesMut) -> Result<(Value, usize)> {
     for _ in 0..array_length {
         let (item, parsed) = parse_message(BytesMut::from(&buffer[bytes_consumed..]))?;
 
+        println!("Parsed {}", item.unpack_as_string().unwrap());
+
         array_items.push(item);
         bytes_consumed += parsed;
     }
