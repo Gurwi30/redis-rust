@@ -33,6 +33,8 @@ async fn handle_client(socket: TcpStream) {
     loop {
         let value = handler.read_value().await.unwrap();
 
+        println!("{:?}", value);
+
         let response = if let Some(v) = value {
             let (command, args) = extract_command(v).unwrap();
 
