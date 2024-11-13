@@ -98,7 +98,7 @@ fn read_until_end(buffer: &[u8]) -> Option<(&[u8], usize)> {
         let cur_char: char = buffer[i] as char;
 
         if cur_char == '\n' && previous_char == '\r' {
-            return Some((&buffer[0..(i - 1)], i + i));
+            return Some((&buffer[0..(i - 1)], i + 1));
         }
     }
 
