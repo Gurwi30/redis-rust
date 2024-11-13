@@ -36,6 +36,8 @@ impl Value {
 }
 
 pub(crate) fn parse_message(buffer: BytesMut) -> Result<(Value, usize)> {
+    println!("{:?}", buffer);
+
     match buffer[0] as char {
         '+' => parse_simple_string(buffer),
         '$' => parse_bulk_string(buffer),
