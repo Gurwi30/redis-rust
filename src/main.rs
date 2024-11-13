@@ -1,12 +1,12 @@
-#![allow(unused_imports)]
+mod parser;
+mod response;
 
-use std::fmt::format;
+use crate::parser::Value;
+
 use std::io::{Read, Write};
-use std::net::SocketAddr;
-use std::ptr::read;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::task::JoinHandle;
+use anyhow::Result;
 
 const DEFAULT_PORT: u16 = 6379;
 
@@ -29,17 +29,44 @@ async fn main() -> std::io::Result<()> {
     }
 }
 
-async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
-    tokio::spawn(async move {
-        loop {
-            let buffer = &mut [0; 512];
-            let reads = stream.read(buffer).await.unwrap();
-            if reads == 0 {
-                break;
-            }
+async fn handle_client(socket: TcpStream) {
+    let mut handler = response::RespHandler::new(socket);
 
-            println!("{:?}", String::from_utf8(buffer[..reads].to_vec()).unwrap());
-            stream.write(b"+PONG\r\n").await.unwrap();
-        }
-    })
+    loop {
+        let value = handler.read_value().await.unwrap();
+        let response = if let Some(value) = value {
+            let (command, args) = extract_command(value).unwrap();
+            match command.as_str() {
+                "ping" => Value::SimpleString("PONG".to_string()),
+                "echo" => Value::BulkString(args.first().unwrap().to_string()),
+                invalid_command => panic!("Unable to handle command {}!", invalid_command)
+            }
+        };
+
+        handler.write_value(response).await.unwrap()
+    }
 }
+
+fn extract_command(value: Value) -> Result<(String, Vec<Value>)> {
+    match value {
+        Value::Array(arr) => {
+            Ok((arr.first().unpack_as_string(), arr.into_iter().skip(1).collect()))
+        },
+
+        _ => Err(anyhow::anyhow!("Invalid command format!"))
+    }
+}
+
+// async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
+//     tokio::spawn(async move {
+//         loop {
+//             let reads = stream.read(buffer).await.unwrap();
+//             if reads == 0 {
+//                 break;
+//             }
+//
+//             //println!("{:?}", String::from_utf8(buffer[..reads].to_vec()).unwrap()); GET INPUTS
+//             stream.write(b"+PONG\r\n").await.unwrap();
+//         }
+//     })
+// }
