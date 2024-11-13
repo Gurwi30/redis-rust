@@ -33,10 +33,8 @@ async fn handle_client(socket: TcpStream) {
     loop {
         let value = handler.read_value().await.unwrap();
 
-        let response = if let Some(value) = value {
-            let (command, args) = extract_command(value).unwrap();
-
-            println!("Command: {command:?}, Args: {args:?}");
+        let response = if let Some(v) = value {
+            let (command, args) = extract_command(v).unwrap();
 
             match command.as_str() {
                 "ping" => Value::SimpleString("PONG".to_string()),
