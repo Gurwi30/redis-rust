@@ -3,8 +3,6 @@ mod response;
 
 use crate::parser::Value;
 
-use std::io::{Read, Write};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use anyhow::Result;
 
@@ -34,13 +32,16 @@ async fn handle_client(socket: TcpStream) {
 
     loop {
         let value = handler.read_value().await.unwrap();
+
         let response = if let Some(value) = value {
             let (command, args) = extract_command(value).unwrap();
             match command.as_str() {
                 "ping" => Value::SimpleString("PONG".to_string()),
-                "echo" => Value::BulkString(args.first().unwrap().to_string()),
+                "echo" => args.first().unwrap().clone(),
                 invalid_command => panic!("Unable to handle command {}!", invalid_command)
             }
+        } else {
+            break;
         };
 
         handler.write_value(response).await.unwrap()
@@ -50,7 +51,7 @@ async fn handle_client(socket: TcpStream) {
 fn extract_command(value: Value) -> Result<(String, Vec<Value>)> {
     match value {
         Value::Array(arr) => {
-            Ok((arr.first().unpack_as_string(), arr.into_iter().skip(1).collect()))
+            Ok((arr.first().unwrap().clone().unpack_as_string().unwrap(), arr.into_iter().skip(1).collect()))
         },
 
         _ => Err(anyhow::anyhow!("Invalid command format!"))

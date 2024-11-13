@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use anyhow::Result;
 use bytes::BytesMut;
 
+#[derive(Clone, Debug)]
 pub enum Value {
     SimpleString(String),
     BulkString(String),
@@ -38,7 +39,7 @@ pub(crate) fn parse_message(buffer: BytesMut) -> Result<(Value, usize)> {
     match buffer[0] as char {
         '+' => parse_simple_string(buffer),
         '$' => parse_bulk_string(buffer),
-        '*' => parse_simple_string(buffer),
+        '*' => parse_array(buffer),
         _ => Err(anyhow!("{:?} is an invalid value type!", buffer)),
     }
 }
