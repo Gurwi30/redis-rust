@@ -79,6 +79,8 @@ fn parse_array(buffer: BytesMut) -> Result<(Value, usize)> {
 
     let mut array_items: Vec<Value> = Vec::new();
 
+    println!("{}", array_length);
+
     for _ in 0..array_length {
         let (item, parsed) = parse_message(BytesMut::from(&buffer[bytes_consumed..]))?;
 
