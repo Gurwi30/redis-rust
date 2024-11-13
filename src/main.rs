@@ -44,6 +44,8 @@ async fn handle_client(socket: TcpStream) {
             break;
         };
 
+        println!("{:?}", response);
+
         handler.write_value(response).await.unwrap()
     }
 }
