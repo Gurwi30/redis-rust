@@ -31,12 +31,13 @@ async fn handle_client(socket: TcpStream) {
     let mut handler = response::RespHandler::new(socket);
 
     loop {
-        println!("Handling a response");
-
         let value = handler.read_value().await.unwrap();
 
         let response = if let Some(value) = value {
             let (command, args) = extract_command(value).unwrap();
+
+            println!("Command: {command:?}, Args: {args:?}");
+
             match command.as_str() {
                 "ping" => Value::SimpleString("PONG".to_string()),
                 "echo" => args.first().unwrap().clone(),
