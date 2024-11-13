@@ -19,7 +19,7 @@ impl RespHandler {
     }
 
     pub async fn read_value(&mut self) -> Result<Option<Value>> {
-        let bytes_read = self.stream.read(&mut self.buffer).await?;
+        let bytes_read = self.stream.read_buf(&mut self.buffer).await?;
 
         if bytes_read == 0 {
             return Ok(None);
