@@ -1,10 +1,9 @@
-use crate::parser;
-
 use anyhow::Result;
 use bytes::BytesMut;
-use parser::Value;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
+
+use crate::parser::{Value, parse_message};
 
 pub struct RespHandler {
     stream: TcpStream,
@@ -26,7 +25,7 @@ impl RespHandler {
             return Ok(None);
         }
 
-        let (value, _) = parser::parse_message(self.buffer.split())?;
+        let (value, _) = parse_message(self.buffer.split())?;
         Ok(Some(value))
     }
 
