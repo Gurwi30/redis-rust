@@ -31,6 +31,8 @@ async fn handle_client(socket: TcpStream) {
     let mut handler = response::RespHandler::new(socket);
 
     loop {
+        println!("Handling a response");
+
         let value = handler.read_value().await.unwrap();
 
         let response = if let Some(value) = value {
@@ -52,19 +54,11 @@ async fn handle_client(socket: TcpStream) {
 
 fn extract_command(value: Value) -> Result<(String, Vec<Value>)> {
     match value {
-        Value::Array(a) => {
-            Ok((
-                unpack_bulk_str(a.first().unwrap().clone())?,
-                a.into_iter().skip(1).collect(),
-            ))
+        Value::Array(arr) => {
+            Ok((arr.first().unwrap().clone().unpack_as_string().unwrap(), arr.into_iter().skip(1).collect()))
         },
-        _ => Err(anyhow::anyhow!("Unexpected command format")),
-    }
-}
-fn unpack_bulk_str(value: Value) -> Result<String> {
-    match value {
-        Value::BulkString(s) => Ok(s),
-        _ => Err(anyhow::anyhow!("Expected command to be a bulk string"))
+
+        _ => Err(anyhow::anyhow!("Invalid command format!"))
     }
 }
 
