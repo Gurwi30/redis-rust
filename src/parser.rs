@@ -74,7 +74,7 @@ fn parse_array(buffer: BytesMut) -> Result<(Value, usize)> {
     let (array_length, mut bytes_consumed) = if let Some((line, parsed)) = read_until_end(&buffer[1..]) {
         let array_size = parse_int(line)?;
 
-        (array_size, parsed + 1)
+        (array_size, parsed + 2)
     } else {
         return Err(anyhow!("{:?} is an invalid Array Format!", buffer))
     };
