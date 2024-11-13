@@ -16,7 +16,10 @@ async fn main() -> std::io::Result<()> {
         match listener.accept().await {
             Ok((_socket, addr)) => {
                 println!("Connection established! {addr}...");
-                handle_client(_socket).await;
+
+                tokio::spawn(async move {
+                    handle_client(_socket).await;
+                });
             }
 
             Err(e) => {
@@ -44,8 +47,6 @@ async fn handle_client(socket: TcpStream) {
         } else {
             break;
         };
-
-        println!("Sending response -> {}", response.clone().serialize());
 
         handler.write_value(response).await.unwrap()
     }
