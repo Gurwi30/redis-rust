@@ -25,6 +25,7 @@ impl RespHandler {
             return Ok(None);
         }
 
+        println!("bytes read: {}", &self.buffer);
         let (value, _) = parse_message(self.buffer.split())?;
         Ok(Some(value))
     }
