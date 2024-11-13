@@ -45,7 +45,7 @@ async fn handle_client(socket: TcpStream) {
             break;
         };
 
-        println!("Sending response -> {}", response.serialize());
+        println!("Sending response -> {}", response.clone().serialize());
 
         handler.write_value(response).await.unwrap()
     }
