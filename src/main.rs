@@ -1,10 +1,12 @@
 mod parser;
 mod response;
-
-use crate::parser::Value;
+mod commands;
+mod storage;
 
 use tokio::net::{TcpListener, TcpStream};
 use anyhow::Result;
+use crate::storage::DataContainer;
+use crate::parser::Value;
 
 const DEFAULT_PORT: u16 = 6379;
 
@@ -32,6 +34,7 @@ async fn main() -> std::io::Result<()> {
 
 async fn handle_client(socket: TcpStream) {
     let mut handler = response::RespHandler::new(socket);
+    let mut data_container: DataContainer = DataContainer::new();
 
     loop {
         let value = handler.read_value().await.unwrap();
@@ -42,6 +45,18 @@ async fn handle_client(socket: TcpStream) {
             match command.as_str() {
                 "ping" => Value::SimpleString("PONG".to_string()),
                 "echo" => args.first().unwrap().clone(),
+                "set" => {
+                    let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
+                    let value: Value = args[1].clone();
+
+                    data_container.set(key.as_str(), value)
+                },
+
+                "get" => {
+                    let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
+                    data_container.get(key.as_str())
+                }
+
                 invalid_command => panic!("Unable to handle command {}!", invalid_command)
             }
         } else {
@@ -61,17 +76,3 @@ fn extract_command(value: Value) -> Result<(String, Vec<Value>)> {
         _ => Err(anyhow::anyhow!("Invalid command format!"))
     }
 }
-
-// async fn handle_client(mut stream: TcpStream) -> JoinHandle<()> {
-//     tokio::spawn(async move {
-//         loop {
-//             let reads = stream.read(buffer).await.unwrap();
-//             if reads == 0 {
-//                 break;
-//             }
-//
-//             //println!("{:?}", String::from_utf8(buffer[..reads].to_vec()).unwrap()); GET INPUTS
-//             stream.write(b"+PONG\r\n").await.unwrap();
-//         }
-//     })
-// }

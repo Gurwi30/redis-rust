@@ -8,7 +8,8 @@ pub enum Value {
     BulkString(String),
     Boolean(bool),
     Integer(i64),
-    Array(Vec<Value>)
+    Array(Vec<Value>),
+    Null
 }
 
 impl Value {
@@ -18,8 +19,9 @@ impl Value {
             Value::BulkString(s) => format!("${}\r\n{}\r\n", s.len(), s),
             Value::Boolean(b) => format!("#{}\r\n", b.to_string().chars().next().unwrap()),
             Value::Integer(i) => format!(":{}\r\n", i),
-            // TODO -> SERIALIZE ARRAYS
-            _ => panic!("Tried to serialize unserializable value!")
+            Value::Array(arr) => format!("*{}\r\n{}\r\n", arr.len(), arr.iter().map(|v| v.clone().serialize()).collect::<Vec<_>>().join("\r\n")),
+            Value::Null => format!("_\r\n")
+            //_ => panic!("Tried to serialize unserializable value!")
         }
     }
 
@@ -29,6 +31,7 @@ impl Value {
             Value::BulkString(s) => Some(s),
             Value::Boolean(b) => Some(b.to_string()),
             Value::Integer(i) => Some(i.to_string()),
+            Value::Null => Some(String::new()),
             _ => None
         }
     }
@@ -66,6 +69,24 @@ fn parse_bulk_string(buffer: BytesMut) -> Result<(Value, usize)> {
     let total_parsed = end_of_str + 2;
 
     Ok((Value::SimpleString(buffer_to_string(&buffer[bytes_consumed..end_of_str])), total_parsed))
+}
+
+fn parse_integer(buffer: BytesMut) -> Result<(Value, usize)> {
+    if let Some((line, parsed)) = read_until_end(&buffer[1..]) {
+        let buffer_str: String = buffer_to_string(line);
+        return Ok((Value::Integer(buffer_str.parse::<i64>()?), parsed + 1));
+    }
+
+    Err(anyhow!("{:?} is an invalid Integer!", buffer))
+}
+
+fn parse_boolean(buffer: BytesMut) -> Result<(Value, usize)> {
+    if let Some((line, parsed)) = read_until_end(&buffer[1..]) {
+        let buffer_str: String = buffer_to_string(line);
+        return Ok((Value::Boolean(buffer_str.parse::<bool>()?), parsed + 1));
+    }
+
+    Err(anyhow!("{:?} is an invalid Integer!", buffer))
 }
 
 fn parse_array(buffer: BytesMut) -> Result<(Value, usize)> {
