@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use std::time::{Instant, UNIX_EPOCH};
-use anyhow::Result;
 use crate::parser::Value;
+use anyhow::Result;
+use std::collections::HashMap;
+use std::time::Instant;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
