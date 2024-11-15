@@ -5,7 +5,7 @@ mod storage;
 
 use tokio::net::{TcpListener, TcpStream};
 use anyhow::Result;
-use crate::storage::DataContainer;
+use crate::storage::Storage;
 use crate::parser::Value;
 
 const DEFAULT_PORT: u16 = 6379;
@@ -34,7 +34,7 @@ async fn main() -> std::io::Result<()> {
 
 async fn handle_client(socket: TcpStream) {
     let mut handler = response::RespHandler::new(socket);
-    let mut data_container: DataContainer = DataContainer::new();
+    let mut data_container: Storage = Storage::new();
 
     loop {
         let value = handler.read_value().await.unwrap();
@@ -48,8 +48,18 @@ async fn handle_client(socket: TcpStream) {
                 "set" => {
                     let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
                     let value: Value = args[1].clone();
+                    let mut expiration: Option<u128> = None;
 
-                    data_container.set(key.as_str(), value)
+                    if args.len() > 2 {
+                        let option = args[2].clone().unpack_as_string().unwrap().to_lowercase();
+
+                        match option.as_str() {
+                            "px" => expiration = Some(args[3].clone().unpack_as_string().unwrap().parse::<u128>().unwrap()), // TODO -> HANDLE ERRORS
+                            _ => println!("{} is an invalid option!", option)
+                        }
+                    }
+
+                    data_container.set(key.as_str(), value, expiration)
                 },
 
                 "get" => {

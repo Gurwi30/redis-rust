@@ -20,7 +20,7 @@ impl Value {
             Value::Boolean(b) => format!("#{}\r\n", b.to_string().chars().next().unwrap()),
             Value::Integer(i) => format!(":{}\r\n", i),
             Value::Array(arr) => format!("*{}\r\n{}\r\n", arr.len(), arr.iter().map(|v| v.clone().serialize()).collect::<Vec<_>>().join("\r\n")),
-            Value::Null => format!("_\r\n")
+            Value::Null => "_\r\n".to_string()
             //_ => panic!("Tried to serialize unserializable value!")
         }
     }
@@ -57,7 +57,7 @@ fn parse_simple_string(buffer: BytesMut) -> Result<(Value, usize)> {
 }
 
 fn parse_bulk_string(buffer: BytesMut) -> Result<(Value, usize)> {
-    let (str_length, mut bytes_consumed) = if let Some((line, parsed)) = read_until_end(&buffer[1..]) {
+    let (str_length, bytes_consumed) = if let Some((line, parsed)) = read_until_end(&buffer[1..]) {
         let str_length = parse_int(line)?;
 
         (str_length, parsed + 1)
@@ -99,8 +99,6 @@ fn parse_array(buffer: BytesMut) -> Result<(Value, usize)> {
     };
 
     let mut array_items: Vec<Value> = Vec::new();
-
-    println!("{:?} {}", buffer, array_length);
 
     for _ in 0..array_length {
         let (item, parsed) = parse_message(BytesMut::from(&buffer[bytes_consumed..]))?;
