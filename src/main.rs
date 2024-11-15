@@ -22,6 +22,31 @@ async fn main() -> std::io::Result<()> {
     let storage = Storage::new();
     let mut config = Configuration::new();
 
+    if args.len() > 1 {
+        let mut cur_index = 1;
+
+        while cur_index < args.len() {
+            if args[cur_index].starts_with("--") {
+                let arg = &args[cur_index];
+
+                match args[1].as_str() {
+                    "--dir" => {
+                        let value = args[cur_index + 1].as_str();
+                        config.set(ConfigKey::Dir, value);
+                    },
+
+                    "--dbfilename" => {
+                        let value = args[cur_index + 1].as_str();
+                        config.set(ConfigKey::DbFilename, value);
+                    }
+
+                    _ => println!("Invalid Argument! {}", args[1]),
+                }
+
+                cur_index += 2;
+            }
+        }
+    }
 
     if args.len() > 2 {
         match args[1].as_str() {
