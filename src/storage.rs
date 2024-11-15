@@ -1,20 +1,23 @@
 use crate::parser::Value;
 use anyhow::Result;
 use std::collections::HashMap;
+use std::fs;
 use std::time::Instant;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
 }
 
-pub struct DataContainer {
-    value: Value,
-    creation_date: Instant,
-    expire_in_mills: Option<u128>
-}
-
 impl Storage {
     pub fn new() -> Storage {
+        Storage {
+            storage: HashMap::new()
+        }
+    }
+
+    pub fn load_from_rdb(path: String) -> Storage {
+        RDBFile::from(path);
+
         Storage {
             storage: HashMap::new()
         }
@@ -48,6 +51,12 @@ impl Storage {
     }
 }
 
+pub struct DataContainer {
+    value: Value,
+    creation_date: Instant,
+    expire_in_mills: Option<u128>
+}
+
 impl DataContainer {
     pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
         DataContainer {
@@ -66,5 +75,22 @@ impl DataContainer {
 
     pub fn get_value(&self) -> Value {
         self.value.clone()
+    }
+}
+
+struct RDBFile {
+    version: String,
+    metadata: HashMap<String, String>,
+}
+
+impl RDBFile {
+    pub fn from(file_path: String) -> RDBFile {
+        let contents = fs::read_to_string(file_path);
+        println!("contents: {:?}", contents);
+
+        RDBFile {
+            version: "0.0.0".to_string(),
+            metadata: HashMap::new(),
+        }
     }
 }

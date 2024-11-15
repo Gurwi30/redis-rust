@@ -33,6 +33,8 @@ async fn main() -> std::io::Result<()> {
                     "--dir" => {
                         let value = args[cur_index + 1].as_str();
                         config.set(ConfigKey::Dir, value);
+
+                        Storage::load_from_rdb()
                     },
 
                     "--dbfilename" => {
