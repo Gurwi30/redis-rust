@@ -113,7 +113,7 @@ fn parse_array(buffer: BytesMut) -> Result<(Value, usize)> {
 }
 
 fn read_until_end(buffer: &[u8]) -> Option<(&[u8], usize)> {
-    for i in 1..buffer.len() {
+    for i in 1..(buffer.len() - 1) {
         let previous_char = buffer[i - 1] as char;
         let cur_char: char = buffer[i] as char;
 
