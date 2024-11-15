@@ -90,7 +90,7 @@ impl RDBFile {
         }
 
         let contents = fs::read(file_path).unwrap();
-        //println!("contents: {:?}", contents);
+        println!("contents: {:?}", contents);
 
         let (redis_version_number, read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
         println!("RBD File Header Version: {:?}", redis_version_number);
