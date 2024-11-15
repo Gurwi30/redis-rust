@@ -93,11 +93,12 @@ impl RDBFile {
         println!("contents: {:?}", contents);
 
         let resizedb_field_pos = contents.iter().position(| &b | b == 0xFB).unwrap();
+        let mut pos = resizedb_field_pos + 1;
 
-        let len = contents[resizedb_field_pos + 1] as usize;
+        let len = contents[pos] as usize;
         println!("len: {:?}", len);
 
-        let value_i_think = contents[resizedb_field_pos + len + 1];
+        let value_i_think = contents[pos..(pos + len)];
         println!("value_i_think: {:?}", value_i_think);
 
         Ok(
