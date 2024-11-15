@@ -133,7 +133,7 @@ impl Command for ConfigCommand {
                 let get_option = args[1].clone().unpack_as_string().unwrap();
 
                 match get_option.as_str() {
-                    "dir" => Ok(Value::SimpleString(context.config.get(ConfigKey::Dir))),
+                    "dir" => Ok(Value::Array(vec![Value::SimpleString("dir".to_string()), Value::SimpleString(context.config.get(ConfigKey::Dir))])),
                     "dbfilename" => Ok(Value::SimpleString(context.config.get(ConfigKey::DbFilename))),
                     _ => Err(anyhow!("Invalid config get option {}", get_option))
                 }
