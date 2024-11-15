@@ -96,26 +96,26 @@ impl RDBFile {
         let (redis_version_number, read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
         println!("RBD File Header Version: {:?}", redis_version_number);
 
-        if let Some(start_pos) = contents.windows(1).position(|window| window == &[0xFA]) {
-            // Skip the 0xFA byte and read the metadata
-            let metadata = &contents[start_pos + 1..];
+        // if let Some(start_pos) = contents.windows(1).position(|window| window == &[0xFA]) {
+        //     // Skip the 0xFA byte and read the metadata
+        //     let metadata = &contents[start_pos + 1..];
+        //
+        //     // Now, we need to read the attribute name and value
+        //     if let Some(attribute_name_end) = metadata.iter().position(|&x| x == 0x2D) {
+        //         let attribute_name = &metadata[0..attribute_name_end];
+        //         let attribute_value = &metadata[attribute_name_end + 1..];
+        //
+        //         // Convert bytes to string
+        //         let attribute_name_str = String::from_utf8_lossy(attribute_name);
+        //         let attribute_value_str = String::from_utf8_lossy(attribute_value);
+        //
+        //         println!("Attribute Name: {}", attribute_name_str);
+        //         println!("Attribute Value: {}", attribute_value_str);
+        //     }
+        // }
 
-            // Now, we need to read the attribute name and value
-            if let Some(attribute_name_end) = metadata.iter().position(|&x| x == 0x2D) {
-                let attribute_name = &metadata[0..attribute_name_end];
-                let attribute_value = &metadata[attribute_name_end + 1..];
-
-                // Convert bytes to string
-                let attribute_name_str = String::from_utf8(Vec::from(attribute_name))?;
-                let attribute_value_str = String::from_utf8(Vec::from(attribute_value))?;
-
-                println!("Attribute Name: {}", attribute_name_str);
-                println!("Attribute Value: {}", attribute_value_str);
-            }
-        }
-
-        // let metadata = read_from_until(&contents, read_bytes, 0xFE).map(|data| (data.0, data.1)).unwrap();
-        // println!("RBD Metadata: {:}", String::from_utf8(Vec::from(metadata.0))?);
+        let metadata = read_from_until(&contents, read_bytes, 0xFE).map(|data| (data.0, data.1)).unwrap();
+        println!("RBD Metadata: {}", String::from_utf8_lossy(metadata.0));
 
         Ok(
             RDBFile {
