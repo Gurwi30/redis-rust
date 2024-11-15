@@ -107,6 +107,8 @@ impl RDBFile {
 }
 
 fn read_from_until<'a>(data: &'a Vec<u8>, start: usize, until: &[u8; 2]) -> Option<&'a[u8]> {
+    print!("LEN {}", data.len());
+
     for i in start..(data.len() - 1) {
         let current_byte = data[i];
         let previous_byte = data[i - 1];
