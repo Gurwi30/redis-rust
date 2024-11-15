@@ -79,7 +79,7 @@ impl DataContainer {
 }
 
 struct RDBFile {
-    version: String,
+    redis_version_number: String,
     metadata: HashMap<String, String>,
 }
 
@@ -90,28 +90,30 @@ impl RDBFile {
 
         }
 
-        let contents = fs::read(file_path);
+        let contents = fs::read(file_path).unwrap();
         println!("contents: {:?}", contents);
 
-        let version = read_from_until(&contents?, 0, 0xFA).map(|bytes| String::from_utf8(Vec::from(bytes)).unwrap()).unwrap_or("0.0.0".to_string());
+        let (redis_version_number, read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
+        println!("RBD File Header Version: {:?}", redis_version_number);
 
-        println!("RBD Header File Version: {:?}", version);
+        let metadata = read_from_until(&contents, read_bytes, 0xFE).map(|data| (data.0, data.1)).unwrap();
+        println!("RBD Metadata: {:}", String::from_utf8(Vec::from(metadata.0))?);
 
         Ok(
             RDBFile {
-                version,
+                redis_version_number,
                 metadata: HashMap::new(),
             }
         )
     }
 }
 
-fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<&[u8]> {
+fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usize)> {
     for i in (start + 1)..data.len() {
         let current_byte = data[i];
 
         if current_byte == until as u8 {
-            return Some(&data[start..(i - 1)]);
+            return Some((&data[start..(i - 1)], i + 1));
         }
     }
 
