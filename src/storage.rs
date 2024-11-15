@@ -1,5 +1,5 @@
 use crate::parser::Value;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
@@ -84,13 +84,20 @@ struct RDBFile {
 }
 
 impl RDBFile {
-    pub fn from(file_path: String) -> RDBFile {
-        let contents = fs::read_to_string(file_path);
+    pub fn from(file_path: String) -> Result<RDBFile> {
+        if !file_path.ends_with(".rdb") {
+            return Err(anyhow!("File does not end with '.rdb'"));
+
+        }
+
+        let contents = fs::read(file_path);
         println!("contents: {:?}", contents);
 
-        RDBFile {
-            version: "0.0.0".to_string(),
-            metadata: HashMap::new(),
-        }
+        Ok(
+            RDBFile {
+                version: "0.0.0".to_string(),
+                metadata: HashMap::new(),
+            }
+        )
     }
 }
