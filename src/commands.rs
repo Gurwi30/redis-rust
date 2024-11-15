@@ -25,7 +25,7 @@ impl CommandExecutor {
     pub fn try_exec(&self, command_name: String, args: Vec<Value>, storage: &mut Storage) -> Result<Value> {
         match self.commands.get(&command_name) {
             Some(command) => command.exec(args, storage),
-            None => panic!("Unable to handle command {}!", command_name)
+            None => panic!("Unable to handle command {}!", command_name.to_uppercase())
         }
     }
 
