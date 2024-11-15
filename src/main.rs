@@ -2,31 +2,36 @@ mod parser;
 mod response;
 mod commands;
 mod storage;
+mod config;
 
+use crate::commands::{CommandContext, CommandExecutor};
+use crate::config::Configuration;
+use crate::parser::Value;
+use crate::storage::Storage;
+use anyhow::Result;
 use std::sync::{Arc, Mutex};
 use tokio::net::{TcpListener, TcpStream};
-use anyhow::Result;
-use crate::commands::CommandExecutor;
-use crate::storage::Storage;
-use crate::parser::Value;
 
 const DEFAULT_PORT: u16 = 6379;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind(format!("127.0.0.1:{DEFAULT_PORT}")).await?;
-    let shared_storage = Arc::new(Mutex::new(Storage::new()));
+    let config = Configuration::new();
+    let storage = Storage::new();
+
     let shared_executor = Arc::new(CommandExecutor::new());
+    let context = Arc::new(Mutex::new(CommandContext::new(storage, config)));
 
     loop {
         match listener.accept().await {
             Ok((_socket, addr)) => {
                 println!("Connection established! {addr}...");
-                let storage = Arc::clone(&shared_storage);
                 let executor = Arc::clone(&shared_executor);
+                let context = Arc::clone(&context);
 
                 tokio::spawn(async move {
-                    handle_client(_socket, storage, executor).await;
+                    handle_client(_socket, executor, context).await;
                 });
             }
 
@@ -38,7 +43,7 @@ async fn main() -> std::io::Result<()> {
     }
 }
 
-async fn handle_client(socket: TcpStream, storage: Arc<Mutex<Storage>>, command_executor: Arc<CommandExecutor>) {
+async fn handle_client(socket: TcpStream, command_executor: Arc<CommandExecutor>, context: Arc<Mutex<CommandContext>>) {
     let mut handler = response::RespHandler::new(socket);
 
     loop {
@@ -46,8 +51,9 @@ async fn handle_client(socket: TcpStream, storage: Arc<Mutex<Storage>>, command_
 
         let response = if let Some(v) = value {
             let (command, args) = extract_command(v).unwrap();
-            let mut storage = storage.lock().unwrap();
-            command_executor.try_exec(command.to_lowercase(), args, &mut *storage).unwrap()
+            let mut context = context.lock().unwrap();
+
+            command_executor.try_exec(command.to_lowercase(), args, &mut *context).unwrap()
         } else {
             break;
         };

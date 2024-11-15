@@ -1,15 +1,30 @@
+use crate::config::{ConfigKey, Configuration};
 use crate::parser::Value;
 use crate::storage::Storage;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 
 trait Command: Send + Sync {
     fn name(&self) -> &str;
-    fn exec(&self, args: Vec<Value>, storage: &mut Storage) -> Result<Value>;
+    fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value>;
 }
 
 pub struct CommandExecutor {
     commands: HashMap<String, Box<dyn Command>>,
+}
+
+pub struct CommandContext {
+    storage: Storage,
+    config: Configuration
+}
+
+impl CommandContext {
+    pub fn new(storage: Storage, config: Configuration) -> CommandContext {
+        CommandContext {
+            storage,
+            config
+        }
+    }
 }
 
 impl CommandExecutor {
@@ -22,9 +37,9 @@ impl CommandExecutor {
         executor
     }
 
-    pub fn try_exec(&self, command_name: String, args: Vec<Value>, storage: &mut Storage) -> Result<Value> {
+    pub fn try_exec(&self, command_name: String, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
         match self.commands.get(&command_name) {
-            Some(command) => command.exec(args, storage),
+            Some(command) => command.exec(args, context),
             None => panic!("Unable to handle command {}!", command_name.to_uppercase())
         }
     }
@@ -48,7 +63,7 @@ impl Command for PingCommand {
         "ping"
     }
 
-    fn exec(&self, _: Vec<Value>, _: &mut Storage) -> Result<Value> {
+    fn exec(&self, _: Vec<Value>, _: &mut CommandContext) -> Result<Value> {
         Ok(Value::SimpleString("PONG".to_string()))
     }
 }
@@ -59,7 +74,7 @@ impl Command for EchoCommand {
         "echo"
     }
 
-    fn exec(&self, args: Vec<Value>, _: &mut Storage) -> Result<Value> {
+    fn exec(&self, args: Vec<Value>, _: &mut CommandContext) -> Result<Value> {
         Ok(args.first().unwrap().clone())
     }
 }
@@ -70,7 +85,7 @@ impl Command for StorageSetCommand {
         "set"
     }
 
-    fn exec(&self, args: Vec<Value>, storage: &mut Storage) -> Result<Value> {
+    fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
         let value: Value = args[1].clone();
         let mut expiration: Option<u128> = None;
@@ -84,7 +99,7 @@ impl Command for StorageSetCommand {
             }
         }
 
-        Ok(storage.set(key.as_str(), value, expiration))
+        Ok(context.storage.set(key.as_str(), value, expiration))
     }
 }
 
@@ -94,9 +109,9 @@ impl Command for StorageGetCommand {
         "get"
     }
 
-    fn exec(&self, args: Vec<Value>, storage: &mut Storage) -> Result<Value> {
+    fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
-        Ok(storage.get(key.as_str()))
+        Ok(context.storage.get(key.as_str()))
     }
 }
 
@@ -106,7 +121,25 @@ impl Command for ConfigCommand {
         "config"
     }
 
-    fn exec(&self, args: Vec<Value>, storage: &mut Storage) -> Result<Value> {
-        Ok(Value::SimpleString("OK".to_string()))
+    fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
+        let option = args[0].clone().unpack_as_string().unwrap().to_lowercase();
+
+        match option.as_str() {
+            "get" => {
+                if args.len() < 2 {
+                    return Ok(Value::SimpleString("PONG".to_string()));
+                }
+
+                let get_option = args[1].clone().unpack_as_string().unwrap();
+
+                match get_option.as_str() {
+                    "dir" => Ok(Value::SimpleString(context.config.get(ConfigKey::Dir))),
+                    "dbfilename" => Ok(Value::SimpleString(context.config.get(ConfigKey::DbFilename))),
+                    _ => Err(anyhow!("Invalid config get option {}", get_option))
+                }
+            }
+
+            _ => Err(anyhow!("Invalid config option {}", option))
+        }
     }
 }
