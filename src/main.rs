@@ -27,7 +27,6 @@ async fn main() -> std::io::Result<()> {
             "--dir" => {
                 let value = args[2].as_str();
                 config.set(ConfigKey::Dir, value);
-                println!("Config Value Dir set to {}", value)
             },
 
             "--dbfilename" => {
