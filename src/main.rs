@@ -44,7 +44,7 @@ async fn main() -> std::io::Result<()> {
                 }
 
                 cur_index += 2;
-            } todo!("Check if the argument value is present, if not throw an error, just handle this fucking errors and don't be lazy.")
+            } // TODO -> Check if the argument value is present, if not throw an error, just handle this fucking errors and don't be lazy.
         }
     }
 
