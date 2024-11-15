@@ -113,7 +113,7 @@ impl RDBFile {
         // }
 
         println!("Metadata: {:?}", metadata);
-        println!("Metadata 1 Length: {:?}", metadata[1] as usize);
+        println!("Metadata 1 Length: {:?}", metadata[0] as usize);
 
         //
         // let metadata = read_from_until(&contents, read_bytes, 0xFE).map(|data| (data.0, data.1)).unwrap();
@@ -133,7 +133,7 @@ fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usiz
         let current_byte = data[i];
 
         if current_byte == until as u8 {
-            return Some((&data[start..(i - 1)], i));
+            return Some((&data[start..(i - 1)], i + 1));
         }
     }
 
