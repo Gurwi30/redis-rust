@@ -51,8 +51,11 @@ impl CommandExecutor {
     fn init_def(&mut self) {
         self.register(Box::new(PingCommand));
         self.register(Box::new(EchoCommand));
+
         self.register(Box::new(StorageSetCommand));
         self.register(Box::new(StorageGetCommand));
+        self.register(Box::new(StorageKeysCommand));
+
         self.register(Box::new(ConfigCommand))
     }
 }
