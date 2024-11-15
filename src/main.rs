@@ -29,7 +29,7 @@ async fn main() -> std::io::Result<()> {
             if args[cur_index].starts_with("--") {
                 let arg = &args[cur_index];
 
-                match args[1].as_str() {
+                match arg.as_str() {
                     "--dir" => {
                         let value = args[cur_index + 1].as_str();
                         config.set(ConfigKey::Dir, value);
