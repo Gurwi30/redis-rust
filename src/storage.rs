@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::time::UNIX_EPOCH;
+use std::time::{Instant, UNIX_EPOCH};
 use anyhow::Result;
 use crate::parser::Value;
 
@@ -9,7 +9,7 @@ pub struct Storage {
 
 pub struct DataContainer {
     value: Value,
-    creation_date: u128,
+    creation_date: Instant,
     expire_in_mills: Option<u128>
 }
 
@@ -31,10 +31,10 @@ impl Storage {
                 container.get_value()
             } else {
                 self.storage.remove(&key.to_string());
-                Value::Null
+                Value::NullBulkString
             }
 
-            None => Value::Null
+            None => Value::NullBulkString
         }
     }
 
@@ -48,14 +48,14 @@ impl DataContainer {
     pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
         DataContainer {
             value,
-            creation_date: get_current_timestamp(),
+            creation_date: Instant::now(),
             expire_in_mills
         }
     }
 
     pub fn is_expired(&self) -> bool {
         match self.expire_in_mills {
-            Some(expire_in_mills) => get_current_timestamp() - self.creation_date >= expire_in_mills,
+            Some(expire_in_mills) => Instant::now().duration_since(self.creation_date).as_millis() >= expire_in_mills,
             None => false
         }
     }
@@ -63,8 +63,4 @@ impl DataContainer {
     pub fn get_value(&self) -> Value {
         self.value.clone()
     }
-}
-
-fn get_current_timestamp() -> u128 {
-    std::time::SystemTime::now().duration_since(UNIX_EPOCH).expect("Unable to get system time").as_millis()
 }
