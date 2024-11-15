@@ -106,8 +106,8 @@ impl RDBFile {
                 let attribute_value = &metadata[attribute_name_end + 1..];
 
                 // Convert bytes to string
-                let attribute_name_str = String::from_utf8_lossy(attribute_name);
-                let attribute_value_str = String::from_utf8_lossy(attribute_value);
+                let attribute_name_str = String::from_utf8(Vec::from(attribute_name))?;
+                let attribute_value_str = String::from_utf8(Vec::from(attribute_value))?;
 
                 println!("Attribute Name: {}", attribute_name_str);
                 println!("Attribute Value: {}", attribute_value_str);
