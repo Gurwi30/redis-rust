@@ -99,7 +99,7 @@ impl RDBFile {
 
         Ok(
             RDBFile {
-                redis_version_number,
+                redis_version_number: "REDIS000".to_string(),
                 metadata: HashMap::new(),
             }
         )
