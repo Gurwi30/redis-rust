@@ -16,7 +16,7 @@ impl Storage {
     }
 
     pub fn load_from_rdb(path: String) -> Storage {
-        RDBFile::from(path);
+        RDBFile::from(path).expect("An error!!!!!!");
 
         Storage {
             storage: HashMap::new()
@@ -93,7 +93,7 @@ impl RDBFile {
         let contents = fs::read(file_path);
         println!("contents: {:?}", contents);
 
-        let version = read_from_until(contents?, 0, b"FA").map(|bytes| String::from_utf8(Vec::from(bytes)).unwrap()).unwrap_or("0.0.0.0".to_string());
+        let version = read_from_until(&contents?, 0, b"FA").map(|bytes| String::from_utf8(Vec::from(bytes)).unwrap()).unwrap_or("0.0.0.0".to_string());
 
         println!("RBD Header File Version: {:?}", version);
 
@@ -106,7 +106,7 @@ impl RDBFile {
     }
 }
 
-fn read_from_until(data: Vec<u8>, start: usize, until: &[u8; 2]) -> Option<&[u8]> {
+fn read_from_until<'a>(data: &'a Vec<u8>, start: usize, until: &[u8; 2]) -> Option<&'a[u8]> {
     for i in start..data.len() {
         let current_byte = data[i];
         let previous_byte = data[i - 1];
