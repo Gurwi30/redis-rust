@@ -98,3 +98,14 @@ impl Command for StorageGetCommand {
         Ok(storage.get(key.as_str()))
     }
 }
+
+struct ConfigCommand;
+impl Command for ConfigCommand {
+    fn name(&self) -> &str {
+        "config"
+    }
+
+    fn exec(&self, args: Vec<Value>, storage: &mut Storage) -> Result<Value> {
+        Ok(Value::SimpleString("OK".to_string()))
+    }
+}
