@@ -133,7 +133,7 @@ fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usiz
         let current_byte = data[i];
 
         if current_byte == until as u8 {
-            return Some((&data[start..(i - 1)], i + 1));
+            return Some((&data[start..(i - 1)], i));
         }
     }
 
