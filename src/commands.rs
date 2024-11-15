@@ -38,6 +38,7 @@ impl CommandExecutor {
         self.register(Box::new(EchoCommand));
         self.register(Box::new(StorageSetCommand));
         self.register(Box::new(StorageGetCommand));
+        self.register(Box::new(ConfigCommand))
     }
 }
 
