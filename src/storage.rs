@@ -113,6 +113,7 @@ impl RDBFile {
         // }
 
         println!("Metadata: {:?}", metadata);
+        println!("Metadata 1 Length: {:?}", metadata[1] as usize);
 
         //
         // let metadata = read_from_until(&contents, read_bytes, 0xFE).map(|data| (data.0, data.1)).unwrap();
