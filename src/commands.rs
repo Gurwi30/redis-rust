@@ -63,7 +63,7 @@ impl Command for PingCommand {
         "ping"
     }
 
-    fn exec(&self, _: Vec<Value>, _: &mut CommandContext) -> Result<Value> {
+    fn exec(&self, _args: Vec<Value>, _context: &mut CommandContext) -> Result<Value> {
         Ok(Value::SimpleString("PONG".to_string()))
     }
 }
@@ -74,7 +74,7 @@ impl Command for EchoCommand {
         "echo"
     }
 
-    fn exec(&self, args: Vec<Value>, _: &mut CommandContext) -> Result<Value> {
+    fn exec(&self, args: Vec<Value>, _context: &mut CommandContext) -> Result<Value> {
         Ok(args.first().unwrap().clone())
     }
 }
@@ -112,6 +112,17 @@ impl Command for StorageGetCommand {
     fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
         Ok(context.storage.get(key.as_str()))
+    }
+}
+
+struct StorageKeysCommand;
+impl Command for StorageKeysCommand {
+    fn name(&self) -> &str {
+        "keys"
+    }
+
+    fn exec(&self, _args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
+        Ok(Value::Array(context.storage.keys().iter().map(|k| Value::BulkString(k.clone())).collect::<Vec<Value>>()))
     }
 }
 

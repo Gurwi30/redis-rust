@@ -42,6 +42,10 @@ impl Storage {
         self.storage.remove(key);
         Ok(Value::SimpleString("OK".to_string()))
     }
+
+    pub fn keys(&self) -> Vec<String> {
+        self.storage.keys().map(|k| k.to_string()).collect()
+    }
 }
 
 impl DataContainer {
