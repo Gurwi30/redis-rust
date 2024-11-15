@@ -5,7 +5,7 @@ mod storage;
 mod config;
 
 use crate::commands::{CommandContext, CommandExecutor};
-use crate::config::Configuration;
+use crate::config::{ConfigKey, Configuration};
 use crate::parser::Value;
 use crate::storage::Storage;
 use anyhow::Result;
@@ -17,8 +17,27 @@ const DEFAULT_PORT: u16 = 6379;
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind(format!("127.0.0.1:{DEFAULT_PORT}")).await?;
-    let config = Configuration::new();
+    let args = std::env::args().collect::<Vec<_>>();
+
     let storage = Storage::new();
+    let mut config = Configuration::new();
+
+    if args.len() > 2 {
+        match args[1].as_str() {
+            "--dir" => {
+                let value = args[2].as_str();
+                config.set(ConfigKey::Dir, value);
+                println!("Config Value Dir set to {}", value)
+            },
+
+            "--dbfilename" => {
+                let value = args[2].as_str();
+                config.set(ConfigKey::DbFilename, value);
+            }
+
+            _ => println!("Invalid Argument! {}", args[1]),
+        }
+    }
 
     let shared_executor = Arc::new(CommandExecutor::new());
     let context = Arc::new(Mutex::new(CommandContext::new(storage, config)));

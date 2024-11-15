@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum ConfigKey {
     Dir,
     DbFilename,
@@ -28,6 +28,7 @@ impl Configuration {
 
     pub fn set(&mut self, key: ConfigKey, value: &str) {
         self.options.insert(key, value.to_string());
+        println!("Config Value {:?} set to {}", key, value)
     }
 
     pub fn get(&mut self, key: ConfigKey) -> String {
