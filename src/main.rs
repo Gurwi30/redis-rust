@@ -33,8 +33,6 @@ async fn main() -> std::io::Result<()> {
                     "--dir" => {
                         let value = args[cur_index + 1].as_str();
                         config.set(ConfigKey::Dir, value);
-
-                        Storage::load_from_rdb(value.to_string());
                     },
 
                     "--dbfilename" => {
@@ -48,6 +46,8 @@ async fn main() -> std::io::Result<()> {
                 cur_index += 2;
             } // TODO -> Check if the argument value is present, if not throw an error, just handle this fucking errors and don't be lazy.
         }
+
+        Storage::load_from_rdb(format!("{}/{}", config.get(ConfigKey::Dir), config.get(ConfigKey::DbFilename)));
     }
 
     if args.len() > 2 {
