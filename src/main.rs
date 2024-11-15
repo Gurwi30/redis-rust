@@ -22,6 +22,8 @@ async fn main() -> std::io::Result<()> {
     let storage = Storage::new();
     let mut config = Configuration::new();
 
+    if args.len
+
     if args.len() > 2 {
         match args[1].as_str() {
             "--dir" => {
