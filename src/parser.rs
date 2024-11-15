@@ -20,7 +20,7 @@ impl Value {
             Value::BulkString(s) => format!("${}\r\n{}\r\n", s.len(), s),
             Value::Boolean(b) => format!("#{}\r\n", b.to_string().chars().next().unwrap()),
             Value::Integer(i) => format!(":{}\r\n", i),
-            Value::Array(arr) => format!("*{}\r\n{}\r\n", arr.len(), arr.iter().map(|v| v.clone().serialize()).collect::<Vec<_>>().join("\r\n")),
+            Value::Array(arr) => format!("*{}\r\n{}\r\n", arr.len(), arr.iter().map(|v| v.clone().serialize()).collect::<Vec<_>>().join("")),
             Value::NullBulkString => "$-1\r\n".to_string(),
             Value::Null => "_\r\n".to_string()
             //_ => panic!("Tried to serialize unserializable value!")
