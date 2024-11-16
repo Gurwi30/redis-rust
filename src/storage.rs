@@ -104,7 +104,7 @@ impl RDBFile {
 
         pos += 1;
 
-        for _ in 1..(hash_table_size + expire_hash_table_size) {
+        for _ in 0..(hash_table_size + expire_hash_table_size) {
             let mut expiration_in_mills: Option<u128> = None;
             pos += 1;
 
