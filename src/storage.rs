@@ -107,18 +107,17 @@ impl RDBFile {
 
         for _ in 0..(hash_table_size + expire_hash_table_size) {
             let mut expiration_in_mills: Option<u128> = None;
-            pos += 1;
 
             if contents[pos] == 0xFD {
                 let slice = &contents[pos..pos + 4];
                 expiration_in_mills = Some((read_length_encoded_int(slice)? as u128) * 1000);
-                pos += 4;
+                pos += 4 + 1;
             }
 
             if contents[pos] == 0xFC {
                 let slice = &contents[pos..pos + 8];
                 expiration_in_mills = Some(read_length_encoded_int(slice)? as u128);
-                pos += 8;
+                pos += 8 + 1;
             }
 
             let value_type = contents[pos];
