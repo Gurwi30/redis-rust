@@ -116,7 +116,7 @@ impl RDBFile {
 
             if contents[pos] == 0xFC {
                 let slice = &contents[pos..pos + 8];
-                expiration_in_mills = Some((read_length_encoded_int(slice)? as u128) * 1000);
+                expiration_in_mills = Some(read_length_encoded_int(slice)? as u128);
                 pos += 8;
             }
 
@@ -126,6 +126,8 @@ impl RDBFile {
             let mut slice = &contents[pos..];
             let (key, read_bytes) = read_length_encoded_string(slice)?;
             pos += read_bytes;
+
+            println!("read_bytes: {:?} cur pos {}", read_bytes, pos);
 
             slice = &contents[pos..];
             let (value, read_bytes) = read_length_encoded_string(slice)?;
