@@ -143,7 +143,7 @@ impl RDBFile {
             data.insert(key, DataContainer {
                 value: Value::BulkString(value),
                 creation_date: Instant::now(),
-                expire_in_mills
+                expire_in_mills: expiration_in_mills,
             });
         }
 
