@@ -100,6 +100,7 @@ impl RDBFile {
         let hash_table_size = contents[pos] as usize;
         println!("len: {:?}", hash_table_size);
         pos += 1;
+        println!("pos: {:?}", pos);
         let expire_hash_table_size = contents[pos] as usize;
 
         pos += 1;
