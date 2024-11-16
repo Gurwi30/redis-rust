@@ -100,13 +100,12 @@ impl RDBFile {
         println!("contents: {:?}", contents);
 
         let mut data: HashMap<String, DataContainer> = HashMap::new();
+        // TODO -> USE REDIS VERSION NUMBER TO VALIDATE THE RDB FILE
+        let (redis_version_number, _read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
         let resizedb_field_pos = contents.iter().position(| &b | b == 0xFB).unwrap();
         let mut pos = resizedb_field_pos + 1;
-
         let hash_table_size = contents[pos] as usize;
-        println!("len: {:?}", hash_table_size);
         pos += 1;
-        println!("pos: {:?}", pos);
         let expire_hash_table_size = contents[pos] as usize;
 
         pos += 1;
@@ -142,7 +141,6 @@ impl RDBFile {
             println!("key: {:?}", key);
             println!("value: {:?}", value);
 
-
             // CHECK VALUE TYPE BEFORE INSERTING
             data.insert(key, DataContainer {
                 value: Value::BulkString(value),
@@ -153,7 +151,7 @@ impl RDBFile {
 
         Ok(
             RDBFile {
-                redis_version_number: "REDIS000".to_string(),
+                redis_version_number,
                 metadata: HashMap::new(),
                 data
             }
@@ -200,9 +198,6 @@ fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
     println!("str_len: {:?}", str_len);
     Ok((String::from_utf8(bytes[1..((str_len + 1) as usize)].to_vec()).map_err(|_| anyhow!("Error reading length encoded string!"))?, (str_len + 1) as usize))
 }
-
-// let (redis_version_number, read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
-// println!("RBD File Header Version: {:?}", redis_version_number);
 
 
 // Skip the 0xFA byte and read the metadata
