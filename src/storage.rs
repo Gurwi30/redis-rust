@@ -25,6 +25,10 @@ impl Storage {
         }
     }
 
+    pub fn import_data(&mut self, rdb_file: RDBFile) {
+        self.storage.extend(rdb_file.data);
+    }
+
     pub fn set(&mut self, key: &str, value: Value, expire_in_mills: Option<u128>) -> Value {
         self.storage.insert(key.to_string(), DataContainer::create(value, expire_in_mills));
         Value::SimpleString("OK".to_string())
@@ -80,7 +84,7 @@ impl DataContainer {
     }
 }
 
-struct RDBFile {
+pub struct RDBFile {
     redis_version_number: String,
     metadata: HashMap<String, String>,
     data: HashMap<String, DataContainer>,

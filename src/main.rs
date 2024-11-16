@@ -7,7 +7,7 @@ mod config;
 use crate::commands::{CommandContext, CommandExecutor};
 use crate::config::{ConfigKey, Configuration};
 use crate::parser::Value;
-use crate::storage::Storage;
+use crate::storage::{RDBFile, Storage};
 use anyhow::Result;
 use std::sync::{Arc, Mutex};
 use tokio::net::{TcpListener, TcpStream};
@@ -47,23 +47,15 @@ async fn main() -> std::io::Result<()> {
             } // TODO -> Check if the argument value is present, if not throw an error, just handle this fucking errors and don't be lazy.
         }
 
-        Storage::load_from_rdb(format!("{}/{}", config.get(ConfigKey::Dir), config.get(ConfigKey::DbFilename)));
-    }
-
-    if args.len() > 2 {
-        match args[1].as_str() {
-            "--dir" => {
-                let value = args[2].as_str();
-                config.set(ConfigKey::Dir, value);
-            },
-
-            "--dbfilename" => {
-                let value = args[2].as_str();
-                config.set(ConfigKey::DbFilename, value);
+        match RDBFile::from(format!("{}/{}", config.get(ConfigKey::Dir), config.get(ConfigKey::DbFilename))) {
+            Some(rdb_file) => {
+                Storage::import_data(rdb_file);
+                println!("Imported data from RDB file");
             }
 
-            _ => println!("Invalid Argument! {}", args[1]),
+            None => println!("Unable to import data from RDB file!"),
         }
+
     }
 
     let shared_executor = Arc::new(CommandExecutor::new());
