@@ -18,10 +18,10 @@ impl Storage {
     }
 
     pub fn load_from_rdb(path: String) -> Storage {
-        RDBFile::from(path).expect("An error!!!!!!");
+        let rdb_file = RDBFile::from(path).expect("An error!!!!!!");
 
         Storage {
-            storage: HashMap::new()
+            storage: rdb_file.data
         }
     }
 
@@ -83,6 +83,7 @@ impl DataContainer {
 struct RDBFile {
     redis_version_number: String,
     metadata: HashMap<String, String>,
+    data: HashMap<String, DataContainer>,
 }
 
 impl RDBFile {
@@ -94,6 +95,7 @@ impl RDBFile {
         let contents = &fs::read(file_path)?;
         println!("contents: {:?}", contents);
 
+        let mut data: HashMap<String, DataContainer> = HashMap::new();
         let resizedb_field_pos = contents.iter().position(| &b | b == 0xFB).unwrap();
         let mut pos = resizedb_field_pos + 1;
 
@@ -135,12 +137,21 @@ impl RDBFile {
 
             println!("key: {:?}", key);
             println!("value: {:?}", value);
+
+
+            // CHECK VALUE TYPE BEFORE INSERTING
+            data.insert(key, DataContainer {
+                value: Value::BulkString(value),
+                creation_date: Instant::now(),
+                expire_in_mills
+            });
         }
 
         Ok(
             RDBFile {
                 redis_version_number: "REDIS000".to_string(),
                 metadata: HashMap::new(),
+                data
             }
         )
     }
