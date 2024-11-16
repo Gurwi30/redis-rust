@@ -183,7 +183,7 @@ fn read_length_encoded_int(bytes: &[u8]) -> Result<u64> {
 fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
     let str_len = bytes[0];
     println!("str_len: {:?}", str_len);
-    Ok((String::from_utf8(bytes[1..(str_len as usize)].to_vec()).map_err(|_| anyhow!("Error reading length encoded string!"))?, (str_len + 1) as usize))
+    Ok((String::from_utf8(bytes[0..(str_len as usize)].to_vec()).map_err(|_| anyhow!("Error reading length encoded string!"))?, (str_len + 1) as usize))
 }
 
 // let (redis_version_number, read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
