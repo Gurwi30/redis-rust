@@ -19,7 +19,7 @@ async fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind(format!("127.0.0.1:{DEFAULT_PORT}")).await?;
     let args = std::env::args().collect::<Vec<_>>();
 
-    let storage = Storage::new();
+    let mut storage = Storage::new();
     let mut config = Configuration::new();
 
     if args.len() > 1 {
@@ -48,12 +48,12 @@ async fn main() -> std::io::Result<()> {
         }
 
         match RDBFile::from(format!("{}/{}", config.get(ConfigKey::Dir), config.get(ConfigKey::DbFilename))) {
-            Some(rdb_file) => {
-                Storage::import_data(rdb_file);
+            Ok(rdb_file) => {
+                storage.import_data(rdb_file);
                 println!("Imported data from RDB file");
             }
 
-            None => println!("Unable to import data from RDB file!"),
+            Err(_e) => println!("Unable to import data from RDB file!"),
         }
 
     }
