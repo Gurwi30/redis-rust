@@ -147,6 +147,8 @@ impl RDBFile {
                 creation_date: Instant::now(),
                 expire_in_mills: expiration_in_mills,
             });
+
+            println!("{:?}", expiration_in_mills)
         }
 
         Ok(
