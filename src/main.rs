@@ -49,7 +49,7 @@ async fn main() -> std::io::Result<()> {
 
         match RDBFile::from(format!("{}/{}", config.get(ConfigKey::Dir), config.get(ConfigKey::DbFilename))) {
             Ok(rdb_file) => {
-                storage.import_data(rdb_file);
+                //storage.import_data(rdb_file);
                 println!("Imported data from RDB file");
             }
 
