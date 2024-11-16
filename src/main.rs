@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
                 println!("Imported data from RDB file");
             }
 
-            Err(_e) => println!("Unable to import data from RDB file!"),
+            Err(e) => println!("Unable to import data from RDB file! {}", e),
         }
 
     }
