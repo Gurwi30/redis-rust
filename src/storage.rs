@@ -98,8 +98,10 @@ impl RDBFile {
         let len = contents[pos] as usize;
         println!("len: {:?}", len);
 
-        let value_i_think: &[u8] = &contents[pos..(pos + len)];
-        println!("value_i_think: {:?}", value_i_think);
+        let values_amount = &contents[pos..(pos + len)];
+        println!("value_i_think: {:?}", values_amount);
+
+        pos += 1;
 
         Ok(
             RDBFile {
