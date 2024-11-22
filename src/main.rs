@@ -77,7 +77,6 @@ async fn main() -> std::io::Result<()> {
                 println!("An error occurred: {:?}", e);
             }
         }
-
     }
 }
 
