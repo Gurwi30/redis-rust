@@ -137,13 +137,10 @@ impl RDBFile {
                                 Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice)))
                             }
 
-                            _ => {
-                                cursor += 1;
-                                None
-                            }
+                            _ => None
                         };
 
-                        cursor += 1; // ADDED 1 TO SKIP VALUE TYPE
+                        cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
 
                         let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                         cursor += key_length;
