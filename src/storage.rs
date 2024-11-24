@@ -1,11 +1,12 @@
-use crate::parser::Value;
+use crate::parser::{parse_message, Value};
 use anyhow::{anyhow, Result};
 use bytes::Buf;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use chrono::{NaiveDateTime};
+use std::time::Duration;
+use tokio::time::Instant;
+use crate::parser::Value::BulkString;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -30,7 +31,7 @@ impl Storage {
         self.storage.extend(rdb_file.data);
     }
 
-    pub fn set(&mut self, key: &str, value: Value, expire: Option<SystemTime>) -> Value {
+    pub fn set(&mut self, key: &str, value: Value, expire: Option<u128>) -> Value {
         self.storage.insert(key.to_string(), DataContainer::create(value, expire));
         Value::SimpleString("OK".to_string())
     }
@@ -60,21 +61,28 @@ impl Storage {
 
 pub struct DataContainer {
     value: Value,
-    expire: Option<SystemTime>
+    created: Instant,
+    expire_in_mills: Option<u128>
 }
 
 impl DataContainer {
-    pub fn create(value: Value, expire: Option<SystemTime>) -> DataContainer {
+    pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
         DataContainer {
             value,
-            expire
+            created: Instant::now(),
+            expire_in_mills
         }
     }
 
     pub fn is_expired(&self) -> bool {
-        match self.expire {
-            Some(expire_time) => SystemTime::now() > expire_time,
-            None => false
+        match self.expire_in_mills {
+            Some(expire_in_mills) => {
+                Instant::now()
+                    .duration_since(self.created)
+                    .as_millis()
+                    >= expire_in_mills
+            }
+            None => false,
         }
     }
 
@@ -123,17 +131,17 @@ impl RDBFile {
                     println!("Hash table size: {}", hash_table_size);
 
                     for _ in 0..hash_table_size {
-                        let expire: Option<SystemTime> = match buffer[cursor] {
+                        let expire: Option<u128> = match buffer[cursor] {
                             0xFD => {
                                 let slice: [u8; 4] = buffer[cursor..cursor + 4].try_into()?;
                                 cursor += 4;
-                                Some(UNIX_EPOCH + Duration::from_secs(u32::from_le_bytes(slice) as u64))
+                                Some(Duration::from_secs(u32::from_le_bytes(slice) as u64).as_millis())
                             }
 
                             0xFC => {
                                 let slice: [u8; 8] = buffer[cursor..cursor + 8].try_into()?;
                                 cursor += 8;
-                                Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice)))
+                                Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
                             }
 
                             _ => None
@@ -148,12 +156,8 @@ impl RDBFile {
                         cursor += value_length;
 
                         println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expire);
-                        debug(expire.unwrap());
 
-                        let data_container = DataContainer {
-                            value: Value::BulkString(value),
-                            expire
-                        };
+                        let data_container = DataContainer::create(BulkString(value), expire);
 
                         if data_container.is_expired() {
                             continue;
@@ -235,35 +239,6 @@ fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
         .to_string();
 
     Ok((string, str_len + 1))
-}
-
-fn debug(time: SystemTime) {
-    let now = SystemTime::now();
-
-    // Get the duration since the Unix Epoch
-    let duration_since_epoch = time.duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
-
-    // Given expiration time in seconds and nanoseconds
-    let expiration_sec: u64 = duration_since_epoch.as_secs();
-    let expiration_nsec: u32 = duration_since_epoch.subsec_nanos();
-
-    // Create SystemTime from the provided timestamp (seconds and nanoseconds)
-    let expiration_time = UNIX_EPOCH + Duration::new(expiration_sec, expiration_nsec);
-
-    // Get the current system time
-    let now = SystemTime::now();
-
-    // Check if the expiration time has passed
-    if expiration_time <= now {
-        println!("The expiration time has passed.");
-    } else {
-        println!("The expiration time is still in the future.");
-    }
-
-    // To print the human-readable expiration time (using chrono for better formatting)
-    let naive = NaiveDateTime::from_timestamp(expiration_sec as i64, expiration_nsec);
-    println!("Expiration time: {}", naive);
 }
 
 // Skip the 0xFA byte and read the metadata

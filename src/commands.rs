@@ -3,7 +3,6 @@ use crate::parser::Value;
 use crate::storage::Storage;
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 trait Command: Send + Sync {
     fn name(&self) -> &str;
@@ -92,13 +91,13 @@ impl Command for StorageSetCommand {
     fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
         let value: Value = args[1].clone();
-        let mut expiration: Option<SystemTime> = None;
+        let mut expiration: Option<u128> = None;
 
         if args.len() > 2 {
             let option = args[2].clone().unpack_as_string().unwrap().to_lowercase();
 
             match option.as_str() {
-                "px" => expiration = Some(UNIX_EPOCH + Duration::from_millis(args[3].clone().unpack_as_string().unwrap().parse::<u64>()?)),
+                "px" => expiration = Some(args[3].clone().unpack_as_string().unwrap().parse::<u128>()?),
                 _ => println!("{} is an invalid option!", option)
             }
         }
