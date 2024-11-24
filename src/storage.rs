@@ -4,7 +4,7 @@ use bytes::Buf;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::time::Instant;
+use std::time::{Duration, Instant, UNIX_EPOCH};
 use std::u128;
 
 pub struct Storage {
@@ -102,6 +102,7 @@ impl RDBFile {
         }
 
         let mut file = File::open(file_path)?;
+        let mut data: HashMap<String, DataContainer> = HashMap::new();
         let mut buffer = Vec::new();
         let mut cursor = 5;
 
@@ -110,55 +111,54 @@ impl RDBFile {
         match Self::is_valid(&buffer) {
             RDBValidationResult::TooShort => return Err(anyhow!("Invalid RDB file! File is too short")),
             RDBValidationResult::MissingRedisMagicString => return Err(anyhow!("Missing RDB file! Missing Redis Magic String")),
-            _ => {}
-        }
-
-        let mut data: HashMap<String, DataContainer> = HashMap::new();
-
-        while buffer[cursor] != 0xFF {
-            if buffer[cursor] != 0xFB {
-                cursor += 1;
-                continue;
-            }
-
-            cursor += 1;
-            let hash_table_size = buffer[cursor] as usize;
-            cursor += 2; // ADDED 1 TO SKIP EXPIRE HASH TABLE SIZE
-
-            println!("Hash table size: {}", hash_table_size);
-
-            for _ in 0..hash_table_size {
-                let expiration: Option<u128> = match buffer[cursor] {
-                    0xFD => {
-                        let slice = &buffer[cursor..cursor + 4];
-                        cursor += 4;
-                        Some((u8::from_le_bytes(slice.try_into()?) as u128) * 1000)
+            RDBValidationResult::Valid => {
+                while buffer[cursor] != 0xFF {
+                    if buffer[cursor] != 0xFB {
+                        cursor += 1;
+                        continue;
                     }
 
-                    0xFC => {
-                        let slice =  &buffer[cursor..cursor + 8];
-                        cursor += 8;
-                        Some(u64::from_le_bytes(slice.try_into()?) as u128)
+                    cursor += 1;
+                    let hash_table_size = buffer[cursor] as usize;
+                    cursor += 2; // ADDED 1 TO SKIP EXPIRE HASH TABLE SIZE
+
+                    println!("Hash table size: {}", hash_table_size);
+
+                    for _ in 0..hash_table_size {
+                        let expiration: Option<u128> = match buffer[cursor] {
+                            0xFD => {
+                                let slice = &buffer[cursor..cursor + 4];
+                                cursor += 4;
+                                Some((u32::from_le_bytes(slice.try_into()?) as u128) * 1000)
+                            }
+
+                            0xFC => {
+                                let slice =  &buffer[cursor..cursor + 8];
+                                cursor += 8;
+                                println!("DUR: {:?}", UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice.try_into()?)));
+                                Some(u64::from_le_bytes(slice.try_into()?) as u128)
+                            }
+
+                            _ => None
+                        };
+
+                        cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
+
+                        let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
+                        cursor += key_length;
+
+                        let (value, value_length) = read_length_encoded_string(&buffer[cursor..])?;
+                        cursor += value_length;
+
+                        println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expiration);
+
+                        data.insert(key, DataContainer {
+                            value: Value::BulkString(value),
+                            creation_date: Instant::now(),
+                            expire_in_mills: expiration
+                        });
                     }
-
-                    _ => None
-                };
-
-                cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
-
-                let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
-                cursor += key_length;
-
-                let (value, value_length) = read_length_encoded_string(&buffer[cursor..])?;
-                cursor += value_length;
-
-                println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expiration);
-
-                data.insert(key, DataContainer {
-                    value: Value::BulkString(value),
-                    creation_date: Instant::now(),
-                    expire_in_mills: expiration
-                });
+                }
             }
         }
 
