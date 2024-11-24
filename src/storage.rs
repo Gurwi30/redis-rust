@@ -151,7 +151,7 @@ impl RDBFile {
                 let (value, value_length) = read_length_encoded_string(&buffer[cursor..])?;
                 cursor += value_length;
 
-                println!("Key: {}, Value: {}", key, value);
+                println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expiration);
             }
         }
 
