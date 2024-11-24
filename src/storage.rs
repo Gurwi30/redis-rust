@@ -128,15 +128,15 @@ impl RDBFile {
                     for _ in 0..hash_table_size {
                         let expire: Option<SystemTime> = match buffer[cursor] {
                             0xFD => {
-                                let slice = &buffer[cursor..cursor + 4];
+                                let slice: [u8; 8] = buffer[cursor..cursor + 4].try_into()?;
                                 cursor += 4;
-                                Some(UNIX_EPOCH + Duration::from_secs(u64::from_le_bytes(slice.try_into()?)))
+                                Some(UNIX_EPOCH + Duration::from_secs(u64::from_le_bytes(slice)))
                             }
 
                             0xFC => {
-                                let slice =  &buffer[cursor..cursor + 8];
+                                let slice: [u8; 8] = buffer[cursor..cursor + 8].try_into()?;
                                 cursor += 8;
-                                Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice.try_into()?)))
+                                Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice)))
                             }
 
                             _ => None
