@@ -131,7 +131,7 @@ impl RDBFile {
                     0xFD => {
                         let slice = &buffer[cursor..cursor + 4];
                         cursor += 5;
-                        Some(read_length_encoded_int(slice)? as u128)
+                        Some(read_length_encoded_int(slice)? as u128 * 1000)
                     }
 
                     0xFC => {
