@@ -124,7 +124,7 @@ impl RDBFile {
 
             cursor += 1;
             let hash_table_size = buffer[cursor] as usize;
-            cursor += 2; // SKIPPED EXPIRE HASH TABLE SIZE
+            cursor += 2; // ADDED 1 TO SKIP EXPIRE HASH TABLE SIZE
 
             println!("Hash table size: {}", hash_table_size);
 
@@ -145,7 +145,7 @@ impl RDBFile {
                     _ => None
                 };
 
-                cursor += 2; // ADDED ONE TO SKIP VALUE TYPE
+                cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
 
                 let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                 cursor += key_length;
@@ -286,7 +286,7 @@ fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
         return Err(anyhow!("Not enough bytes to read the full string. Expected {}, got {}.", str_len, bytes.len() - 1));
     }
 
-    let string_slice = &bytes[1..str_len];
+    let string_slice = &bytes[1..=str_len];
     let string = String::from_utf8(string_slice.to_vec())
         .map_err(|_| anyhow!("Invalid UTF-8 sequence in string"))?
         .to_string();
