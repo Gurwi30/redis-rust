@@ -131,14 +131,14 @@ impl RDBFile {
                     0xFD => {
                         let slice = &buffer[cursor..cursor + 4];
                         cursor += 4;
-                        Some(read_length_encoded_int(slice)? as u128 * 1000)
+                        Some(u128::from_le_bytes(slice.try_into()?) * 1000)
                     }
 
                     0xFC => {
                         let slice = &buffer[cursor..cursor + 8];
                         cursor += 8;
                         println!("Read ms value 8 bytes");
-                        Some(read_length_encoded_int(slice)? as u128)
+                        Some(u128::from_le_bytes(slice.try_into()?))
                     }
 
                     _ => None
