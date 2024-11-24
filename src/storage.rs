@@ -64,11 +64,11 @@ pub struct DataContainer {
 }
 
 impl DataContainer {
-    pub fn create(value: Value, expire_in_mills: Option<SystemTime>) -> DataContainer {
+    pub fn create(value: Value, expire: Option<SystemTime>) -> DataContainer {
         DataContainer {
             value,
             creation_date: Instant::now(),
-            expire: expire_in_mills
+            expire
         }
     }
 
@@ -76,7 +76,7 @@ impl DataContainer {
         let now = SystemTime::now();
 
         match self.expire {
-            Some(expire_time) => now >= expire_time,
+            Some(expire_time) => now <= expire_time,
             None => false
         }
     }
