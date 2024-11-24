@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use chrono::{NaiveDateTime};
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -235,6 +236,35 @@ fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
         .to_string();
 
     Ok((string, str_len + 1))
+}
+
+fn debug(time: SystemTime) {
+    let now = SystemTime::now();
+
+    // Get the duration since the Unix Epoch
+    let duration_since_epoch = now.duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+
+    // Given expiration time in seconds and nanoseconds
+    let expiration_sec: u64 = duration_since_epoch.as_secs();
+    let expiration_nsec: u32 = duration_since_epoch.subsec_nanos();
+
+    // Create SystemTime from the provided timestamp (seconds and nanoseconds)
+    let expiration_time = UNIX_EPOCH + Duration::new(expiration_sec, expiration_nsec);
+
+    // Get the current system time
+    let now = SystemTime::now();
+
+    // Check if the expiration time has passed
+    if expiration_time <= now {
+        println!("The expiration time has passed.");
+    } else {
+        println!("The expiration time is still in the future.");
+    }
+
+    // To print the human-readable expiration time (using chrono for better formatting)
+    let naive = NaiveDateTime::from_timestamp(expiration_sec as i64, expiration_nsec);
+    println!("Expiration time: {}", naive);
 }
 
 // Skip the 0xFA byte and read the metadata
