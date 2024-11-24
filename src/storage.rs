@@ -128,6 +128,8 @@ impl RDBFile {
             let expire_hash_table_size = buffer[cursor] as usize;
             cursor += 1;
 
+            println!("size: {}", hash_table_size + expire_hash_table_size);
+
             for _ in 0..(hash_table_size + expire_hash_table_size) {
                 let expiration: Option<u128> = match buffer[cursor] {
                     0xFD => {
@@ -146,8 +148,6 @@ impl RDBFile {
                 };
 
                 cursor += 1;
-
-                println!("cursor: {}", String::from_utf8_lossy(&buffer[cursor..]));
 
                 let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                 cursor += key_length;
