@@ -91,8 +91,6 @@ pub enum RDBValidationResult {
 }
 
 pub struct RDBFile {
-    redis_version_number: String,
-    metadata: HashMap<String, String>,
     data: HashMap<String, DataContainer>,
 }
 
@@ -158,72 +156,13 @@ impl RDBFile {
                 data.insert(key, DataContainer {
                     value: Value::BulkString(value),
                     creation_date: Instant::now(),
-                    expire_in_mills: expiration,
+                    expire_in_mills: expiration
                 });
             }
         }
 
-        // let mut buff: [u8; 5] = [0; 5];
-        //
-        // file.read_exact(&mut buff)?;
-        //
-        // println!("{:?}", String::from_utf8(buff.to_vec()));
-        //
-        // let mut data: HashMap<String, DataContainer> = HashMap::new();
-        //
-        // let resizedb_field_pos = file.iter().position(| &b | b == 0xFB).unwrap();
-        // let mut pos = resizedb_field_pos + 1;
-        // let hash_table_size = file[pos] as usize;
-        // pos += 1;
-        // let expire_hash_table_size = file[pos] as usize;
-        //
-        // pos += 1;
-        //
-        // for _ in 0..(hash_table_size + expire_hash_table_size) {
-        //     let mut expiration_in_mills: Option<u128> = None;
-        //
-        //     if file[pos] == 0xFD {
-        //         let slice = &file[pos..pos + 4];
-        //         expiration_in_mills = Some((read_length_encoded_int(slice)? as u128) * 1000);
-        //         pos += 4 + 1;
-        //     }
-        //
-        //     if file[pos] == 0xFC {
-        //         let slice = &file[pos..pos + 8];
-        //         expiration_in_mills = Some(read_length_encoded_int(slice)? as u128);
-        //         pos += 8 + 1;
-        //     }
-        //
-        //     let value_type = file[pos];
-        //     pos += 1;
-        //
-        //     let mut slice = &file[pos..];
-        //     let (key, read_bytes) = read_length_encoded_string(slice)?;
-        //     pos += read_bytes;
-        //
-        //     println!("read_bytes: {:?} cur pos {}", read_bytes, pos);
-        //
-        //     slice = &file[pos..];
-        //     let (value, read_bytes) = read_length_encoded_string(slice)?;
-        //     pos += read_bytes;
-        //
-        //     println!("key: {:?}", key);
-        //     println!("value: {:?}", value);
-        //
-        //     // CHECK VALUE TYPE BEFORE INSERTING
-        //     data.insert(key, DataContainer {
-        //         value: Value::BulkString(value),
-        //         creation_date: Instant::now(),
-        //         expire_in_mills: expiration_in_mills,
-        //     });
-        //
-        //     println!("{:?}", expiration_in_mills)
-        // }
-
          Ok(
             RDBFile {
-                redis_version_number: "REDIS".to_string(),
-                metadata: HashMap::new(),
                 data
             }
         )
