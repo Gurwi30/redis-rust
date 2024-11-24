@@ -72,10 +72,11 @@ impl DataContainer {
     }
 
     pub fn is_expired(&self) -> bool {
-        let now = SystemTime::now();
-
         match self.expire {
-            Some(expire_time) => SystemTime::now() > expire_time,
+            Some(expire_time) => {
+                println!("FUNZIONA PLS {}", SystemTime::now().duration_since(expire_time).unwrap().as_millis());
+                SystemTime::now().duration_since(expire_time).unwrap().as_millis() < 0
+            },
             None => false
         }
     }
