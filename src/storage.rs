@@ -4,8 +4,7 @@ use bytes::Buf;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::time::{Duration, Instant, UNIX_EPOCH};
-use std::u128;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -30,8 +29,8 @@ impl Storage {
         self.storage.extend(rdb_file.data);
     }
 
-    pub fn set(&mut self, key: &str, value: Value, expire_in_mills: Option<u128>) -> Value {
-        self.storage.insert(key.to_string(), DataContainer::create(value, expire_in_mills));
+    pub fn set(&mut self, key: &str, value: Value, expire: Option<SystemTime>) -> Value {
+        self.storage.insert(key.to_string(), DataContainer::create(value, expire));
         Value::SimpleString("OK".to_string())
     }
 
@@ -61,21 +60,23 @@ impl Storage {
 pub struct DataContainer {
     value: Value,
     creation_date: Instant,
-    expire_in_mills: Option<u128>
+    expire: Option<SystemTime>
 }
 
 impl DataContainer {
-    pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
+    pub fn create(value: Value, expire_in_mills: Option<SystemTime>) -> DataContainer {
         DataContainer {
             value,
             creation_date: Instant::now(),
-            expire_in_mills
+            expire: expire_in_mills
         }
     }
 
     pub fn is_expired(&self) -> bool {
-        match self.expire_in_mills {
-            Some(expire_in_mills) => Instant::now().duration_since(self.creation_date).as_millis() >= expire_in_mills,
+        let now = SystemTime::now();
+
+        match self.expire {
+            Some(expire_time) => now >= expire_time,
             None => false
         }
     }
@@ -125,18 +126,17 @@ impl RDBFile {
                     println!("Hash table size: {}", hash_table_size);
 
                     for _ in 0..hash_table_size {
-                        let expiration: Option<u128> = match buffer[cursor] {
+                        let expire: Option<SystemTime> = match buffer[cursor] {
                             0xFD => {
                                 let slice = &buffer[cursor..cursor + 4];
                                 cursor += 4;
-                                Some((u32::from_le_bytes(slice.try_into()?) as u128) * 1000)
+                                Some(UNIX_EPOCH + Duration::from_secs(u64::from_le_bytes(slice.try_into()?)))
                             }
 
                             0xFC => {
                                 let slice =  &buffer[cursor..cursor + 8];
                                 cursor += 8;
-                                println!("DUR: {:?}", UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice.try_into()?)));
-                                Some(u64::from_le_bytes(slice.try_into()?) as u128)
+                                Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice.try_into()?)))
                             }
 
                             _ => None
@@ -150,12 +150,12 @@ impl RDBFile {
                         let (value, value_length) = read_length_encoded_string(&buffer[cursor..])?;
                         cursor += value_length;
 
-                        println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expiration);
+                        println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expire);
 
                         data.insert(key, DataContainer {
                             value: Value::BulkString(value),
                             creation_date: Instant::now(),
-                            expire_in_mills: expiration
+                            expire
                         });
                     }
                 }
