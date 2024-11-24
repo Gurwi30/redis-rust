@@ -138,7 +138,7 @@ impl RDBFile {
                     0xFC => {
                         let slice =  &buffer[cursor..cursor + 8];
                         cursor += 8;
-                        Some(u8::from_le_bytes(slice.try_into()?) as u128)
+                        Some(u16::from_le_bytes(slice.try_into()?) as u128)
                     }
 
                     _ => None
