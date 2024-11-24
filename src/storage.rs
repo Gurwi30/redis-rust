@@ -75,7 +75,7 @@ impl DataContainer {
         match self.expire {
             Some(expire_time) => {
                 println!("FUNZIONA PLS {}", expire_time.duration_since(SystemTime::now()).unwrap().as_millis());
-                SystemTime::now().duration_since(expire_time).unwrap().as_millis() < 0
+                expire_time.elapsed().unwrap().as_millis() < 0
             },
             None => false
         }
