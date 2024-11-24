@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::time::Instant;
+use std::u128;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -131,13 +132,13 @@ impl RDBFile {
                     0xFD => {
                         let slice = &buffer[cursor..cursor + 4];
                         cursor += 4;
-                        Some(u128::from_le_bytes(slice.try_into()?) * 1000)
+                        Some((u8::from_le_bytes(slice.try_into()?) as u128) * 1000)
                     }
 
                     0xFC => {
                         let slice =  &buffer[cursor..cursor + 8];
                         cursor += 8;
-                        Some(u128::from_le_bytes(slice.try_into()?))
+                        Some(u64::from_le_bytes(slice.try_into()?) as u128)
                     }
 
                     _ => None
