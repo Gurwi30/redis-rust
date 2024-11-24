@@ -126,6 +126,8 @@ impl RDBFile {
             let hash_table_size = buffer[cursor] as usize;
             cursor += 1;
 
+            println!("Hash table size: {}", hash_table_size);
+
             for _ in 0..hash_table_size {
                 let expiration: Option<u128> = match buffer[cursor] {
                     0xFD => {
