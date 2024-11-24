@@ -84,6 +84,12 @@ impl DataContainer {
     }
 }
 
+pub enum RDBValidationResult {
+    Valid,
+    TooShort,
+    MissingRedisMagicString
+}
+
 pub struct RDBFile {
     redis_version_number: String,
     metadata: HashMap<String, String>,
@@ -97,70 +103,97 @@ impl RDBFile {
         }
 
         let mut file = File::open(file_path)?;
-        let mut buff: [u8; 5] = [0; 5];
+        let mut buffer = Vec::new();
+        let mut cursor = 5;
 
-        file.read_exact(&mut buff)?;
+        file.read_to_end(&mut buffer)?;
 
-        println!("{:?}", String::from_utf8(buff.to_vec()));
+        match Self::is_valid(&buffer) {
+            RDBValidationResult::TooShort => return Err(anyhow!("Invalid RDB file! File is too short")),
+            RDBValidationResult::MissingRedisMagicString => return Err(anyhow!("Missing RDB file! Missing Redis Magic String")),
+            _ => {}
+        }
 
-        // loop {
-        //     let control = file.read
-        //
-        //     println!("control: {}", control);
-        //
-        //     match control {
-        //         0xFA => {
-        //             // let mut slice =
-        //             //     read_length_encoded_string(&mut file);
-        //
-        //         }
-        //
-        //         0xFF => break,
-        //
-        //         _ => todo!("ADD UNMATCHED BYTE EXC")
-        //     }
-        // }
+        while buffer[cursor] != 0xFF {
+            if buffer[cursor] != 0xFB {
+                cursor += 1;
+                continue;
+            }
 
+            cursor += 1;
+            let hash_table_size = buffer[cursor] as usize;
+            cursor += 1;
+            let expire_hash_table_size = buffer[cursor] as usize;
+            cursor += 1;
 
-        // let contents = &fs::read(file_path)?;
-        // println!("contents: {:?}", contents);
+            for _ in 0..(hash_table_size + expire_hash_table_size) {
+                let expiration: Option<u128> = match buffer[cursor] {
+                    0xFD => {
+                        let slice = &buffer[cursor..cursor + 4];
+                        cursor += 5;
+                        Some(read_length_encoded_int(slice)? as u128)
+                    }
+
+                    0xFC => {
+                        let slice = &buffer[cursor..cursor + 8];
+                        cursor += 9;
+                        Some(read_length_encoded_int(slice)? as u128)
+                    }
+
+                    _ => None
+                };
+
+                let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
+                cursor += key_length;
+
+                let (value, value_length) = read_length_encoded_string(&buffer[cursor..])?;
+                cursor += value_length;
+
+                println!("Key: {}, Value: {}", key, value);
+            }
+        }
+
+        // let mut buff: [u8; 5] = [0; 5];
+        //
+        // file.read_exact(&mut buff)?;
+        //
+        // println!("{:?}", String::from_utf8(buff.to_vec()));
         //
         // let mut data: HashMap<String, DataContainer> = HashMap::new();
-        // // TODO -> USE REDIS VERSION NUMBER TO VALIDATE THE RDB FILE
-        // let (redis_version_number, _read_bytes) = read_from_until(&contents, 0, 0xFA).map(|data| (String::from_utf8(Vec::from(data.0)).unwrap(), data.1)).unwrap();
-        // let resizedb_field_pos = contents.iter().position(| &b | b == 0xFB).unwrap();
+        //
+        // let resizedb_field_pos = file.iter().position(| &b | b == 0xFB).unwrap();
         // let mut pos = resizedb_field_pos + 1;
-        // let hash_table_size = contents[pos] as usize;
+        // let hash_table_size = file[pos] as usize;
         // pos += 1;
-        // let expire_hash_table_size = contents[pos] as usize;
+        // let expire_hash_table_size = file[pos] as usize;
         //
         // pos += 1;
         //
         // for _ in 0..(hash_table_size + expire_hash_table_size) {
         //     let mut expiration_in_mills: Option<u128> = None;
         //
-        //     if contents[pos] == 0xFD {
-        //         let slice = &contents[pos..pos + 4];
+        //     if file[pos] == 0xFD {
+        //         let slice = &file[pos..pos + 4];
         //         expiration_in_mills = Some((read_length_encoded_int(slice)? as u128) * 1000);
         //         pos += 4 + 1;
         //     }
         //
-        //     if contents[pos] == 0xFC {
-        //         let slice = &contents[pos..pos + 8];
+        //     if file[pos] == 0xFC {
+        //         let slice = &file[pos..pos + 8];
         //         expiration_in_mills = Some(read_length_encoded_int(slice)? as u128);
         //         pos += 8 + 1;
         //     }
         //
-        //     let value_type = contents[pos];
+        //     let value_type = file[pos];
         //     pos += 1;
         //
-        //     let mut slice = &contents[pos..];
+        //     let mut slice = &file[pos..];
         //     let (key, read_bytes) = read_length_encoded_string(slice)?;
         //     pos += read_bytes;
         //
         //     println!("read_bytes: {:?} cur pos {}", read_bytes, pos);
         //
-        //     slice = &contents[pos..];
+        //     slice = &file[pos..];
         //     let (value, read_bytes) = read_length_encoded_string(slice)?;
         //     pos += read_bytes;
         //
@@ -175,7 +208,7 @@ impl RDBFile {
         //     });
         //
         //     println!("{:?}", expiration_in_mills)
-        //}
+        // }
 
          Ok(
             RDBFile {
@@ -185,11 +218,18 @@ impl RDBFile {
             }
         )
     }
-}
 
-fn parse_hashtable(hash_table_size: u32) -> HashMap<String, DataContainer> {
-    let mut hashtable: HashMap<String, DataContainer> = HashMap::new();
-    todo!("FINISH THIS")
+    pub fn is_valid(buffer: &Vec<u8>) -> RDBValidationResult {
+        if buffer.len() < 5 {
+            return RDBValidationResult::TooShort;
+        }
+
+        if String::from_utf8(buffer[..5].to_vec()).unwrap().as_str() != "REDIS" {
+            return RDBValidationResult::MissingRedisMagicString;
+        }
+
+        RDBValidationResult::Valid
+    }
 }
 
 // fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usize)> {
@@ -227,11 +267,22 @@ fn read_length_encoded_int(bytes: &[u8]) -> Result<u64> {
 }
 
 fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
-    let str_len = bytes[0];
-    println!("str_len: {:?}", str_len);
-    Ok((String::from_utf8(bytes[1..((str_len + 1) as usize)].to_vec()).map_err(|_| anyhow!("Error reading length encoded string!"))?, (str_len + 1) as usize))
-}
+    if bytes.is_empty() {
+        return Err(anyhow!("Input is empty! cannot read length."));
+    }
 
+    let str_len = bytes[0] as usize;
+    if bytes.len() < str_len + 1 {
+        return Err(anyhow!("Not enough bytes to read the full string. Expected {}, got {}.", str_len, bytes.len() - 1));
+    }
+
+    let string_slice = &bytes[1..=str_len];
+    let string = String::from_utf8(string_slice.to_vec())
+        .map_err(|_| anyhow!("Invalid UTF-8 sequence in string"))?
+        .to_string();
+
+    Ok((string, str_len + 1))
+}
 
 // Skip the 0xFA byte and read the metadata
 // let metadata = &contents[read_bytes + 1..];
