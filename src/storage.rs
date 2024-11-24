@@ -146,7 +146,7 @@ impl RDBFile {
                 };
 
                 cursor += 2; // ADDED ONE TO SKIP VALUE TYPE
-                println!("expiration: {}", String::from_utf8_lossy(&buffer[cursor..]));
+                println!("expiration: {}", buffer[cursor]);
 
                 let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                 cursor += key_length;
