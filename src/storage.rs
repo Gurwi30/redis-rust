@@ -135,9 +135,8 @@ impl RDBFile {
                     }
 
                     0xFC => {
-                        let slice = &buffer[cursor..cursor + 8];
+                        let slice =  &buffer[cursor..cursor + 8];
                         cursor += 8;
-                        println!("Read ms value 8 bytes");
                         Some(u128::from_le_bytes(slice.try_into()?))
                     }
 
