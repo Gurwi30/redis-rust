@@ -132,13 +132,13 @@ impl RDBFile {
                 let expiration: Option<u128> = match buffer[cursor] {
                     0xFD => {
                         let slice = &buffer[cursor..cursor + 4];
-                        cursor += 5;
+                        cursor += 4;
                         Some(read_length_encoded_int(slice)? as u128 * 1000)
                     }
 
                     0xFC => {
                         let slice = &buffer[cursor..cursor + 8];
-                        cursor += 9;
+                        cursor += 8;
                         Some(read_length_encoded_int(slice)? as u128)
                     }
 
