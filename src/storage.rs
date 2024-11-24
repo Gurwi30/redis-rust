@@ -97,7 +97,7 @@ impl RDBFile {
         }
 
         let mut file = File::open(file_path)?;
-        let mut buff: [u8; 4] = [0; 4];
+        let mut buff: [u8; 5] = [0; 5];
 
         file.read_exact(&mut buff)?;
 
