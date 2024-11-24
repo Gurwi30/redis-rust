@@ -150,6 +150,7 @@ impl RDBFile {
                         cursor += value_length;
 
                         println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expire);
+                        debug(expire.unwrap());
 
                         let data_container = DataContainer {
                             value: Value::BulkString(value),
