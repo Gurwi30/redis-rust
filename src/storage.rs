@@ -74,7 +74,7 @@ impl DataContainer {
     pub fn is_expired(&self) -> bool {
         match self.expire {
             Some(expire_time) => {
-                println!("FUNZIONA PLS {}", SystemTime::now().duration_since(expire_time).unwrap().as_millis());
+                println!("FUNZIONA PLS {}", expire_time.duration_since(SystemTime::now()).unwrap().as_millis());
                 SystemTime::now().duration_since(expire_time).unwrap().as_millis() < 0
             },
             None => false
