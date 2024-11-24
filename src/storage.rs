@@ -114,6 +114,8 @@ impl RDBFile {
             _ => {}
         }
 
+        let mut data: HashMap<String, DataContainer> = HashMap::new();
+
         while buffer[cursor] != 0xFF {
             if buffer[cursor] != 0xFB {
                 cursor += 1;
@@ -152,6 +154,12 @@ impl RDBFile {
                 cursor += value_length;
 
                 println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expiration);
+
+                data.insert(key, DataContainer {
+                    value: Value::BulkString(value),
+                    creation_date: Instant::now(),
+                    expire_in_mills: expiration,
+                });
             }
         }
 
@@ -216,7 +224,7 @@ impl RDBFile {
             RDBFile {
                 redis_version_number: "REDIS".to_string(),
                 metadata: HashMap::new(),
-                data: HashMap::new()
+                data
             }
         )
     }
