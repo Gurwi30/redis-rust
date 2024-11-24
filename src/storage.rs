@@ -143,6 +143,8 @@ impl RDBFile {
                     _ => None
                 };
 
+                cursor += 1;
+
                 let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                 cursor += key_length;
 
