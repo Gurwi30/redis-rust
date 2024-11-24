@@ -128,9 +128,9 @@ impl RDBFile {
                     for _ in 0..hash_table_size {
                         let expire: Option<SystemTime> = match buffer[cursor] {
                             0xFD => {
-                                let slice: [u8; 8] = buffer[cursor..cursor + 4].try_into()?;
+                                let slice: [u8; 4] = buffer[cursor..cursor + 4].try_into()?;
                                 cursor += 4;
-                                Some(UNIX_EPOCH + Duration::from_secs(u64::from_le_bytes(slice)))
+                                Some(UNIX_EPOCH + Duration::from_secs(u32::from_le_bytes(slice) as u64))
                             }
 
                             0xFC => {
