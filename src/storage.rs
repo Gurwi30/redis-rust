@@ -76,7 +76,7 @@ impl DataContainer {
         let now = SystemTime::now();
 
         match self.expire {
-            Some(expire_time) => now <= expire_time,
+            Some(expire_time) => now > expire_time,
             None => false
         }
     }
@@ -152,11 +152,17 @@ impl RDBFile {
 
                         println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expire);
 
-                        data.insert(key, DataContainer {
+                        let data_container = DataContainer {
                             value: Value::BulkString(value),
                             creation_date: Instant::now(),
                             expire
-                        });
+                        };
+
+                        if data_container.is_expired() {
+                            continue;
+                        }
+
+                        data.insert(key, data_container);
                     }
                 }
             }
