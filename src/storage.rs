@@ -128,19 +128,22 @@ impl RDBFile {
                             0xFD => {
                                 let slice: [u8; 4] = buffer[cursor..cursor + 4].try_into()?;
                                 cursor += 4;
-                                Some(UNIX_EPOCH + Duration::from_secs(u32::from_le_bytes(slice) as u64))
+                                Some(SystemTime::now() + Duration::from_secs(u32::from_le_bytes(slice) as u64))
                             }
 
                             0xFC => {
                                 let slice: [u8; 8] = buffer[cursor..cursor + 8].try_into()?;
                                 cursor += 8;
-                                Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice)))
+                                Some(SystemTime::now() + Duration::from_millis(u64::from_le_bytes(slice)))
                             }
 
-                            _ => None
+                            _ => {
+                                cursor += 1;
+                                None
+                            }
                         };
 
-                        cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
+                        cursor += 1; // ADDED 1 TO SKIP VALUE TYPE
 
                         let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                         cursor += key_length;
