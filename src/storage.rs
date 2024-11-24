@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::time::Instant;
-use tokio::io::AsyncReadExt;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -102,23 +101,25 @@ impl RDBFile {
 
         file.read_exact(&mut buff)?;
 
-        loop {
-            let control = file.read_u8()?;
+        println!("{:?}", buff);
 
-            println!("control: {}", control);
-
-            match control {
-                0xFA => {
-                    // let mut slice =
-                    //     read_length_encoded_string(&mut file);
-
-                }
-
-                0xFF => break,
-
-                _ => todo!(ADD UNMATCHED BYTE EXC)
-            }
-        }
+        // loop {
+        //     let control = file.read
+        //
+        //     println!("control: {}", control);
+        //
+        //     match control {
+        //         0xFA => {
+        //             // let mut slice =
+        //             //     read_length_encoded_string(&mut file);
+        //
+        //         }
+        //
+        //         0xFF => break,
+        //
+        //         _ => todo!("ADD UNMATCHED BYTE EXC")
+        //     }
+        // }
 
 
         // let contents = &fs::read(file_path)?;
@@ -178,25 +179,30 @@ impl RDBFile {
 
          Ok(
             RDBFile {
-                redis_version_number,
+                redis_version_number: "REDIS".to_string(),
                 metadata: HashMap::new(),
-                data
+                data: HashMap::new()
             }
         )
     }
 }
 
-fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usize)> {
-    for i in (start + 1)..data.len() {
-        let current_byte = data[i];
-
-        if current_byte == until as u8 {
-            return Some((&data[start..(i - 1)], i));
-        }
-    }
-
-    None
+fn parse_hashtable(hash_table_size: u32) -> HashMap<String, DataContainer> {
+    let mut hashtable: HashMap<String, DataContainer> = HashMap::new();
+    todo!("FINISH THIS")
 }
+
+// fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usize)> {
+//     for i in (start + 1)..data.len() {
+//         let current_byte = data[i];
+//
+//         if current_byte == until as u8 {
+//             return Some((&data[start..(i - 1)], i));
+//         }
+//     }
+//
+//     None
+// }
 
 fn read_length_encoded_int(bytes: &[u8]) -> Result<u64> {
     let first_byte = bytes[0];

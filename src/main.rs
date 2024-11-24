@@ -108,32 +108,3 @@ fn extract_command(value: Value) -> Result<(String, Vec<Value>)> {
         _ => Err(anyhow::anyhow!("Invalid command format!"))
     }
 }
-
-
-// match command.as_str() {
-//     "ping" => Value::SimpleString("PONG".to_string()),
-//     "echo" => args.first().unwrap().clone(),
-//     "set" => {
-//         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
-//         let value: Value = args[1].clone();
-//         let mut expiration: Option<u128> = None;
-//
-//         if args.len() > 2 {
-//             let option = args[2].clone().unpack_as_string().unwrap().to_lowercase();
-//
-//             match option.as_str() {
-//                 "px" => expiration = Some(args[3].clone().unpack_as_string().unwrap().parse::<u128>().unwrap()), // TODO -> HANDLE ERRORS
-//                 _ => println!("{} is an invalid option!", option)
-//             }
-//         }
-//
-//         data_container.set(key.as_str(), value, expiration)
-//     },
-//
-//     "get" => {
-//         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
-//         data_container.get(key.as_str())
-//     }
-//
-//     invalid_command => panic!("Unable to handle command {}!", invalid_command)
-// }
