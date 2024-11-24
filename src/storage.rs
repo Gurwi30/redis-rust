@@ -159,6 +159,7 @@ impl RDBFile {
                         };
 
                         if data_container.is_expired() {
+                            println!("Data container expired -> {}", key);
                             continue;
                         }
 
