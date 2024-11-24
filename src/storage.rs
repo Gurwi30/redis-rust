@@ -4,7 +4,7 @@ use bytes::Buf;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -59,7 +59,6 @@ impl Storage {
 
 pub struct DataContainer {
     value: Value,
-    creation_date: Instant,
     expire: Option<SystemTime>
 }
 
@@ -67,7 +66,6 @@ impl DataContainer {
     pub fn create(value: Value, expire: Option<SystemTime>) -> DataContainer {
         DataContainer {
             value,
-            creation_date: Instant::now(),
             expire
         }
     }
@@ -76,7 +74,7 @@ impl DataContainer {
         let now = SystemTime::now();
 
         match self.expire {
-            Some(expire_time) => now > expire_time,
+            Some(expire_time) => expire_time.duration_since(now).unwrap().as_millis() <= 0,
             None => false
         }
     }
@@ -154,12 +152,10 @@ impl RDBFile {
 
                         let data_container = DataContainer {
                             value: Value::BulkString(value),
-                            creation_date: Instant::now(),
                             expire
                         };
 
                         if data_container.is_expired() {
-                            println!("Data container expired -> {}", key);
                             continue;
                         }
 
