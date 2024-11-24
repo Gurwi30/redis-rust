@@ -243,7 +243,7 @@ fn debug(time: SystemTime) {
     let now = SystemTime::now();
 
     // Get the duration since the Unix Epoch
-    let duration_since_epoch = now.duration_since(UNIX_EPOCH)
+    let duration_since_epoch = time.duration_since(UNIX_EPOCH)
         .expect("Time went backwards");
 
     // Given expiration time in seconds and nanoseconds
