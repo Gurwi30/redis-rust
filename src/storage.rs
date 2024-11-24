@@ -147,6 +147,8 @@ impl RDBFile {
 
                 cursor += 1;
 
+                println!("cursor: {}", String::from_utf8(buffer[cursor..].to_vec())?);
+
                 let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                 cursor += key_length;
 
