@@ -74,7 +74,7 @@ impl DataContainer {
         let now = SystemTime::now();
 
         match self.expire {
-            Some(expire_time) => expire_time.duration_since(now).unwrap().as_millis() <= 0,
+            Some(expire_time) => SystemTime::now() > expire_time,
             None => false
         }
     }
