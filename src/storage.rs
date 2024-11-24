@@ -125,12 +125,8 @@ impl RDBFile {
             cursor += 1;
             let hash_table_size = buffer[cursor] as usize;
             cursor += 1;
-            let expire_hash_table_size = buffer[cursor] as usize;
-            cursor += 1;
 
-            println!("HashTable: {}, ExpireHashTable: {}", hash_table_size, expire_hash_table_size);
-
-            for _ in 0..(hash_table_size + expire_hash_table_size) {
+            for _ in 0..hash_table_size {
                 let expiration: Option<u128> = match buffer[cursor] {
                     0xFD => {
                         let slice = &buffer[cursor..cursor + 4];
