@@ -101,7 +101,7 @@ impl RDBFile {
 
         file.read_exact(&mut buff)?;
 
-        println!("{:?}", buff);
+        println!("{:?}", String::from_utf8(buff.to_vec()));
 
         // loop {
         //     let control = file.read
