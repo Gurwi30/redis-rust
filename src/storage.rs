@@ -137,6 +137,7 @@ impl RDBFile {
                     0xFC => {
                         let slice = &buffer[cursor..cursor + 8];
                         cursor += 8;
+                        println!("Read ms value 8 bytes");
                         Some(read_length_encoded_int(slice)? as u128)
                     }
 
