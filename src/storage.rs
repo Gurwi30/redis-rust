@@ -166,6 +166,8 @@ impl RDBFile {
                             _ => None
                         };
 
+                        println!("Next byte to read: {:?}", buffer[cursor]);
+
                         cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
 
                         println!("Next byte to read: {:?}", buffer[cursor]);
