@@ -4,7 +4,7 @@ use bytes::Buf;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::time::Instant;
 
 pub struct Storage {
@@ -32,7 +32,7 @@ impl Storage {
         self.storage.extend(rdb_file.data);
     }
 
-    pub fn set(&mut self, key: &str, value: Value, expire: Option<u128>) -> Value {
+    pub fn set(&mut self, key: &str, value: Value, expire: Option<SystemTime>) -> Value {
         self.storage.insert(key.to_string(), DataContainer::create(value, expire));
         Value::SimpleString("OK".to_string())
     }
@@ -60,31 +60,49 @@ impl Storage {
     }
 }
 
+// pub struct DataContainer {
+//     value: Value,
+//     created: Instant,
+//     expire_in_mills: Option<u128>
+// }
+
 pub struct DataContainer {
     value: Value,
-    created: Instant,
-    expire_in_mills: Option<u128>
+    expire: Option<SystemTime>
 }
 
 impl DataContainer {
-    pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
+    // pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
+    //     DataContainer {
+    //         value,
+    //         created: Instant::now(),
+    //         expire_in_mills
+    //     }
+    // }
+
+    pub fn create(value: Value, expire: Option<SystemTime>) -> DataContainer {
         DataContainer {
             value,
-            created: Instant::now(),
-            expire_in_mills
+            expire
         }
     }
 
     pub fn is_expired(&self) -> bool {
-        match self.expire_in_mills {
-            Some(expire_in_mills) => {
-                Instant::now()
-                    .duration_since(self.created)
-                    .as_millis()
-                    >= expire_in_mills
-            }
-            None => false,
+        // match self.expire_in_mills {
+        //     Some(expire_in_mills) => {
+        //         Instant::now()
+        //             .duration_since(self.created)
+        //             .as_millis()
+        //             >= expire_in_mills
+        //     }
+        //     None => false,
+        // }
+
+        match self.expire {
+            Some(expire) => expire > SystemTime::now(),
+            None => false
         }
+
     }
 
     pub fn get_value(&self) -> Value {
@@ -132,18 +150,18 @@ impl RDBFile {
                     println!("Hash table size: {}", hash_table_size);
 
                     for _ in 0..hash_table_size {
-                        let expire: Option<u128> = match buffer[cursor] {
+                        let expire: Option<SystemTime> = match buffer[cursor] {
                             0xFD => {
                                 let slice: [u8; 4] = buffer[cursor + 1..cursor + 5].try_into()?;
                                 cursor += 4;
-                                Some(Duration::from_secs(u32::from_le_bytes(slice) as u64).as_millis())
+                                Some(UNIX_EPOCH + Duration::from_secs(u32::from_le_bytes(slice) as u64))
                             }
 
                             0xFC => {
                                 let slice: [u8; 8] = buffer[cursor + 1..cursor + 9].try_into()?;
                                 cursor += 8;
                                 println!("bytes: {}", u64::from_le_bytes(slice));
-                                Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
+                                Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice)))
                             }
 
                             _ => None
