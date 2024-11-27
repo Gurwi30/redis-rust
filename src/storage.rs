@@ -36,16 +36,16 @@ impl Storage {
         Value::SimpleString("OK".to_string())
     }
 
-    pub fn get(&mut self, key: &str) -> Value {
+    pub fn get(&mut self, key: &str) -> Option<Value> {
         match self.storage.get(key) {
             Some(container) => if !container.is_expired() {
-                container.get_value()
+                Some(container.get_value())
             } else {
                 self.storage.remove(&key.to_string());
-                Value::NullBulkString
+                None
             }
 
-            None => Value::NullBulkString
+            None => None
         }
     }
 
@@ -59,26 +59,12 @@ impl Storage {
     }
 }
 
-// pub struct DataContainer {
-//     value: Value,
-//     created: Instant,
-//     expire_in_mills: Option<u128>
-// }
-
 pub struct DataContainer {
     value: Value,
     expire: Option<SystemTime>
 }
 
 impl DataContainer {
-    // pub fn create(value: Value, expire_in_mills: Option<u128>) -> DataContainer {
-    //     DataContainer {
-    //         value,
-    //         created: Instant::now(),
-    //         expire_in_mills
-    //     }
-    // }
-
     pub fn create(value: Value, expire: Option<SystemTime>) -> DataContainer {
         DataContainer {
             value,
@@ -87,21 +73,10 @@ impl DataContainer {
     }
 
     pub fn is_expired(&self) -> bool {
-        // match self.expire_in_mills {
-        //     Some(expire_in_mills) => {
-        //         Instant::now()
-        //             .duration_since(self.created)
-        //             .as_millis()
-        //             >= expire_in_mills
-        //     }
-        //     None => false,
-        // }
-
         match self.expire {
             Some(expire) => SystemTime::now() > expire,
             None => false
         }
-
     }
 
     pub fn get_value(&self) -> Value {
@@ -213,18 +188,6 @@ impl RDBFile {
     }
 }
 
-// fn read_from_until(data: &[u8], start: usize, until: i32) -> Option<(&[u8], usize)> {
-//     for i in (start + 1)..data.len() {
-//         let current_byte = data[i];
-//
-//         if current_byte == until as u8 {
-//             return Some((&data[start..(i - 1)], i));
-//         }
-//     }
-//
-//     None
-// }
-
 fn read_length_encoded_int(bytes: &[u8]) -> Result<u64> {
     let first_byte = bytes[0];
 
@@ -264,26 +227,3 @@ fn read_length_encoded_string(bytes: &[u8]) -> Result<(String, usize)> {
 
     Ok((string, str_len + 1))
 }
-
-// Skip the 0xFA byte and read the metadata
-// let metadata = &contents[read_bytes + 1..];
-
-// Now, we need to read the attribute name and value
-// if let Some(attribute_name_end) = metadata.iter().position(|&x| x == 0x2D) {
-//     let attribute_name = &metadata[0..attribute_name_end];
-//     let attribute_value = &metadata[attribute_name_end + 1..];
-//
-//     // Convert bytes to string
-//     let attribute_name_str = String::from_utf8_lossy(attribute_name);
-//     let attribute_value_str = String::from_utf8_lossy(attribute_value);
-//
-//     println!("Attribute Name: {}", attribute_name_str);
-//     println!("Attribute Value: {}", attribute_value_str);
-// }
-
-// println!("Metadata: {:?}", metadata);
-// println!("Metadata 1 Length: {:?}", metadata[0] as usize);
-//
-// //
-// // let metadata = read_from_until(&contents, read_bytes, 0xFE).map(|data| (data.0, data.1)).unwrap();
-// // println!("RBD Metadata: {}", String::from_utf8_lossy(metadata.0));

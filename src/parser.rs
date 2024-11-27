@@ -1,6 +1,23 @@
+use std::fmt;
 use anyhow::anyhow;
 use anyhow::Result;
 use bytes::BytesMut;
+
+#[derive(Debug)]
+pub enum Type {
+    String,
+    List,
+    Set,
+    ZSet,
+    Hash,
+    Stream
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum Value {
@@ -35,6 +52,13 @@ impl Value {
             Value::Integer(i) => Some(i.to_string()),
             Value::Null => Some(String::new()),
             _ => None
+        }
+    }
+
+    pub fn get_type(&self) -> Type {
+        match self {
+            Value::Array(_) => Type::List,
+            _ => Type::String,
         }
     }
 
