@@ -152,7 +152,8 @@ impl RDBFile {
                         let expire: Option<SystemTime> = match buffer[cursor] {
                             0xFD => {
                                 let slice: [u8; 4] = buffer[cursor + 1..cursor + 5].try_into()?;
-                                cursor += 3;
+                                cursor += 4;
+                                println!("Reading from FD");
                                 Some(UNIX_EPOCH + Duration::from_secs(u32::from_le_bytes(slice) as u64))
                             }
 
