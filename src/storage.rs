@@ -152,7 +152,7 @@ impl RDBFile {
                         let expire: Option<SystemTime> = match buffer[cursor] {
                             0xFD => {
                                 let slice: [u8; 4] = buffer[cursor + 1..cursor + 5].try_into()?;
-                                cursor += 4;
+                                cursor += 3;
                                 Some(UNIX_EPOCH + Duration::from_secs(u32::from_le_bytes(slice) as u64))
                             }
 
@@ -166,12 +166,7 @@ impl RDBFile {
                             _ => None
                         };
 
-                        println!("Next byte to read: {:?}", buffer[cursor]);
-                        println!("Next byte to read: {:?}", buffer[cursor + 1]);
-
                         cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
-
-                        println!("Next byte to read: {:?}", buffer[cursor]);
 
                         let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                         cursor += key_length;
