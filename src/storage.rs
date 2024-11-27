@@ -142,8 +142,8 @@ impl RDBFile {
                             0xFC => {
                                 let slice: [u8; 8] = buffer[cursor + 1..cursor + 9].try_into()?;
                                 cursor += 8;
-                                println!("bytes: {}", u64::from_be_bytes(slice));
-                                Some(Duration::from_millis(u64::from_be_bytes(slice)).as_millis())
+                                println!("bytes: {}", u64::from_le_bytes(slice));
+                                Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
                             }
 
                             _ => None
