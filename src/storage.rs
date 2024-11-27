@@ -134,18 +134,14 @@ impl RDBFile {
                     for _ in 0..hash_table_size {
                         let expire: Option<u128> = match buffer[cursor] {
                             0xFD => {
-                                cursor += 1;
-
-                                let slice: [u8; 4] = buffer[cursor..cursor + 3].try_into()?;
+                                let slice: [u8; 4] = buffer[cursor + 1..cursor + 5].try_into()?;
                                 cursor += 3;
                                 Some(Duration::from_secs(u32::from_le_bytes(slice) as u64).as_millis())
                             }
 
                             0xFC => {
-                                cursor += 1;
-
-                                let slice: [u8; 8] = buffer[cursor..cursor + 7].try_into()?;
-                                cursor += 7;
+                                let slice: [u8; 8] = buffer[cursor + 1..cursor + 9].try_into()?;
+                                cursor += 9;
                                 Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
                             }
 
