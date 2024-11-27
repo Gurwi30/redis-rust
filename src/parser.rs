@@ -1,9 +1,9 @@
-use std::fmt;
+use strum_macros::{EnumString, Display};
 use anyhow::anyhow;
 use anyhow::Result;
 use bytes::BytesMut;
 
-#[derive(Debug)]
+#[derive(Display, EnumString)]
 pub enum Type {
     String,
     List,
@@ -11,12 +11,6 @@ pub enum Type {
     ZSet,
     Hash,
     Stream
-}
-
-impl fmt::Display for Type::String {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
 }
 
 #[derive(Clone, Debug)]
