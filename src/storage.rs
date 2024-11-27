@@ -136,16 +136,16 @@ impl RDBFile {
                             0xFD => {
                                 cursor += 1;
 
-                                let slice: [u8; 4] = buffer[cursor..cursor + 4].try_into()?;
-                                cursor += 4;
+                                let slice: [u8; 4] = buffer[cursor..cursor + 3].try_into()?;
+                                cursor += 3;
                                 Some(Duration::from_secs(u32::from_le_bytes(slice) as u64).as_millis())
                             }
 
                             0xFC => {
                                 cursor += 1;
 
-                                let slice: [u8; 8] = buffer[cursor..cursor + 8].try_into()?;
-                                cursor += 8;
+                                let slice: [u8; 8] = buffer[cursor..cursor + 7].try_into()?;
+                                cursor += 7;
                                 Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
                             }
 
