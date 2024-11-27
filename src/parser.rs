@@ -13,7 +13,7 @@ pub enum Type {
     Stream
 }
 
-impl fmt::Display for Type {
+impl fmt::Display for Type::String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self)
     }
