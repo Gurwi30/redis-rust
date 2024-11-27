@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use tokio::time::Instant;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -99,7 +98,7 @@ impl DataContainer {
         // }
 
         match self.expire {
-            Some(expire) => expire > SystemTime::now(),
+            Some(expire) => SystemTime::now() > expire,
             None => false
         }
 
