@@ -160,7 +160,7 @@ impl RDBFile {
                             0xFC => {
                                 let slice: [u8; 8] = buffer[cursor + 1..cursor + 9].try_into()?;
                                 cursor += 8;
-                                println!("bytes: {}", u64::from_le_bytes(slice));
+                                println!("Reading from FC");
                                 Some(UNIX_EPOCH + Duration::from_millis(u64::from_le_bytes(slice)))
                             }
 
