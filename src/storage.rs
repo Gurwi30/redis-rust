@@ -166,14 +166,12 @@ impl RDBFile {
                             _ => None
                         };
 
-                        cursor += 2; // ADDED 1 TO SKIP VALUE TYPE
+                        cursor += 1; // ADDED 1 TO SKIP VALUE TYPE
 
                         println!("Next byte to read: {:?}", buffer[cursor]);
 
                         let (key, key_length) = read_length_encoded_string(&buffer[cursor..])?;
                         cursor += key_length;
-
-                        println!("Key: {}", key);
 
                         let (value, value_length) = read_length_encoded_string(&buffer[cursor..])?;
                         cursor += value_length;
