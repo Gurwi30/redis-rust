@@ -1,4 +1,4 @@
-use crate::parser::{parse_message, Value};
+use crate::parser::Value;
 use anyhow::{anyhow, Result};
 use bytes::Buf;
 use std::collections::HashMap;
@@ -6,7 +6,6 @@ use std::fs::File;
 use std::io::Read;
 use std::time::Duration;
 use tokio::time::Instant;
-use crate::parser::Value::BulkString;
 
 pub struct Storage {
     storage: HashMap<String, DataContainer>
@@ -19,12 +18,14 @@ impl Storage {
         }
     }
 
-    pub fn load_from_rdb(path: String) -> Storage {
-        let rdb_file = RDBFile::from(path).expect("An error!!!!!!");
+    pub fn load_from_rdb(path: String) -> Result<Storage> {
+        let rdb_file = RDBFile::from(path)?;
 
-        Storage {
-            storage: rdb_file.data
-        }
+        Ok(
+            Storage {
+                storage: rdb_file.data
+            }
+        )
     }
 
     pub fn import_data(&mut self, rdb_file: RDBFile) {
@@ -133,12 +134,16 @@ impl RDBFile {
                     for _ in 0..hash_table_size {
                         let expire: Option<u128> = match buffer[cursor] {
                             0xFD => {
+                                cursor += 1;
+
                                 let slice: [u8; 4] = buffer[cursor..cursor + 4].try_into()?;
                                 cursor += 4;
                                 Some(Duration::from_secs(u32::from_le_bytes(slice) as u64).as_millis())
                             }
 
                             0xFC => {
+                                cursor += 1;
+
                                 let slice: [u8; 8] = buffer[cursor..cursor + 8].try_into()?;
                                 cursor += 8;
                                 Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
@@ -157,7 +162,7 @@ impl RDBFile {
 
                         println!("Key: {}, Value: {}, Expiration: {:?}", key, value, expire);
 
-                        let data_container = DataContainer::create(BulkString(value), expire);
+                        let data_container = DataContainer::create(Value::BulkString(value), expire);
 
                         if data_container.is_expired() {
                             continue;
@@ -176,7 +181,7 @@ impl RDBFile {
         )
     }
 
-    pub fn is_valid(buffer: &Vec<u8>) -> RDBValidationResult {
+    fn is_valid(buffer: &Vec<u8>) -> RDBValidationResult {
         if buffer.len() < 5 {
             return RDBValidationResult::TooShort;
         }

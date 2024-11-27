@@ -101,10 +101,7 @@ async fn handle_client(socket: TcpStream, command_executor: Arc<CommandExecutor>
 
 fn extract_command(value: Value) -> Result<(String, Vec<Value>)> {
     match value {
-        Value::Array(arr) => {
-            Ok((arr.first().unwrap().clone().unpack_as_string().unwrap().to_lowercase(), arr.into_iter().skip(1).collect()))
-        },
-
+        Value::Array(arr) => Ok((arr.first().unwrap().clone().unpack_as_string().unwrap().to_lowercase(), arr.into_iter().skip(1).collect())),
         _ => Err(anyhow::anyhow!("Invalid command format!"))
     }
 }
