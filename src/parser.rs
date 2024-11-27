@@ -15,7 +15,7 @@ pub enum Type {
 
 impl fmt::Display for Type::String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
