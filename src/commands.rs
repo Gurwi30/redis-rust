@@ -145,7 +145,7 @@ impl Command for StorageValueTypeCommand {
         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
         match context.storage.get(key.as_str()) {
             Some(value) => Ok(Value::SimpleString(value.get_type().to_string())),
-            _ => Ok(Value::SimpleString("none".to_string())),
+            _ => Ok(Value::SimpleString("none".to_string().to_lowercase())),
         }
     }
 }
