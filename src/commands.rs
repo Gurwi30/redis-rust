@@ -98,7 +98,7 @@ impl Command for StorageSetCommand {
             let option = args[2].clone().unpack_as_string().unwrap().to_lowercase();
 
             match option.as_str() {
-                "px" => expiration = Some(SystemTime::now() + Duration::from_secs(args[3].clone().unpack_as_string().unwrap().parse::<u64>()?)),
+                "px" => expiration = Some(SystemTime::now() + Duration::from_millis(args[3].clone().unpack_as_string().unwrap().parse::<u64>()?)),
                 _ => println!("{} is an invalid option!", option)
             }
         }
