@@ -135,13 +135,13 @@ impl RDBFile {
                         let expire: Option<u128> = match buffer[cursor] {
                             0xFD => {
                                 let slice: [u8; 4] = buffer[cursor + 1..cursor + 5].try_into()?;
-                                cursor += 5;
+                                cursor += 4;
                                 Some(Duration::from_secs(u32::from_le_bytes(slice) as u64).as_millis())
                             }
 
                             0xFC => {
                                 let slice: [u8; 8] = buffer[cursor + 1..cursor + 9].try_into()?;
-                                cursor += 9;
+                                cursor += 8;
                                 Some(Duration::from_millis(u64::from_le_bytes(slice)).as_millis())
                             }
 
