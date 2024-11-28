@@ -3,6 +3,7 @@ use crate::parser::{Type, Value};
 use crate::storage::Storage;
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
+use std::ptr::read;
 use std::time::{Duration, SystemTime};
 
 trait Command: Send + Sync {
@@ -260,6 +261,11 @@ fn parse_stream_id(id: String, storage: &mut Storage) -> Result<(i128, i64)> {
 
     if splitted_id.len() > 1 {
         let milliseconds_time: i128 = splitted_id[0].parse()?;
+        let def_sequence_value: i64 = if milliseconds_time <= 0 {
+            1
+        } else {
+            0
+        };
 
         let sequence_number: i64 = if splitted_id[1].starts_with('*') {
             storage
@@ -275,7 +281,7 @@ fn parse_stream_id(id: String, storage: &mut Storage) -> Result<(i128, i64)> {
                     None
                 })
                 .last()
-                .unwrap_or(1)
+                .unwrap_or(def_sequence_value)
         } else {
             splitted_id[1].parse()?
         };
