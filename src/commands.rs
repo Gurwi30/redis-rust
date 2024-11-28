@@ -275,7 +275,7 @@ fn parse_stream_id(id: String, storage: &mut Storage) -> Result<(i128, i64)> {
                     None
                 })
                 .last()
-                .unwrap_or(0)
+                .unwrap_or(1)
         } else {
             splitted_id[1].parse()?
         };
