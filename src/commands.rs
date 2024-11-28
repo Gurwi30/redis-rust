@@ -130,13 +130,16 @@ impl Command for StorageXAddCommand {
         let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
         let id = args[1].clone().unpack_as_string().unwrap();
 
-        let split_id = &id.split("-").collect::<Vec<&str>>();
-        let (cur_id_mills_time, cur_id_sequence_number) = match (split_id[0].parse::<i128>(), split_id[1].parse::<i64>()) {
-            (Ok(mills_time), Ok(sequence_number)) => (mills_time, sequence_number),
+        // let split_id = &id.split("-").collect::<Vec<&str>>();
+        // let (cur_id_mills_time, cur_id_sequence_number) = match (split_id[0].parse::<i128>(), split_id[1].parse::<i64>()) {
+        //     (Ok(mills_time), Ok(sequence_number)) => (mills_time, sequence_number),
+        //     _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
+        // };
+
+        let (cur_id_mills_time, cur_id_sequence_number) = match parse_stream_id(id, &mut context.storage) {
+            Ok(values) => values,
             _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
         };
-
-        let mut entries: HashMap<String, Value> = HashMap::new();
 
         match last_stream_entry {
             Some(data_container) => {
@@ -153,6 +156,8 @@ impl Command for StorageXAddCommand {
             _ => {}
         }
 
+        let mut entries: HashMap<String, Value> = HashMap::new();
+
         for i in 2..args.len() - 3 {
             let entry_key = args[i].clone().unpack_as_string().unwrap();
             let entry_value = args[i + 1].clone();
@@ -162,7 +167,7 @@ impl Command for StorageXAddCommand {
 
         context.storage.set(key.as_str(), Value::Stream(cur_id_mills_time, cur_id_sequence_number, entries), None);
 
-        Ok(Value::BulkString(id))
+        Ok(Value::BulkString(format!("{}-{}", cur_id_sequence_number, cur_id_mills_time)))
     }
 }
 
@@ -248,4 +253,35 @@ impl Command for ConfigCommand {
             _ => Err(anyhow!("Invalid config sub command {}", sub_command))
         }
     }
+}
+
+fn parse_stream_id(id: String, storage: &mut Storage) -> Result<(i128, i64)> {
+    let splitted_id: Vec<&str> = id.split("-").collect();
+
+    if splitted_id.len() > 1 {
+        let milliseconds_time: i128 = splitted_id[0].parse()?;
+
+        let sequence_number: i64 = if splitted_id[1].starts_with('*') {
+            storage
+                .get_specific(Type::Stream)
+                .iter()
+                .filter_map(|data| {
+                    if let Value::Stream(mills, sequence, _) = data.get_value() {
+                        if mills == milliseconds_time {
+                            return Some(sequence + 1);
+                        }
+                    }
+
+                    None
+                })
+                .last()
+                .unwrap_or(0)
+        } else {
+            splitted_id[1].parse()?
+        };
+
+        return Ok((milliseconds_time, sequence_number))
+    }
+
+    Ok((0, 0))
 }
