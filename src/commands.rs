@@ -41,7 +41,7 @@ impl CommandExecutor {
     pub fn try_exec(&self, command_name: String, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
         match self.commands.get(&command_name) {
             Some(command) => command.exec(args, context),
-            None => panic!("Unable to handle command {}!", command_name.to_uppercase())
+            None => panic!("Unable to handle command {}!", command_name.to_uppercase()) // TODO -> SEND ERROR
         }
     }
 
@@ -54,6 +54,7 @@ impl CommandExecutor {
         self.register(Box::new(EchoCommand));
 
         self.register(Box::new(StorageSetCommand));
+        self.register(Box::new(StorageXAddCommand));
         self.register(Box::new(StorageGetCommand));
         self.register(Box::new(StorageKeysCommand));
         self.register(Box::new(StorageValueTypeCommand));
