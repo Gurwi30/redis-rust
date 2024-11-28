@@ -167,7 +167,7 @@ impl Command for StorageXAddCommand {
 
         context.storage.set(key.as_str(), Value::Stream(cur_id_mills_time, cur_id_sequence_number, entries), None);
 
-        Ok(Value::BulkString(format!("{}-{}", cur_id_sequence_number, cur_id_mills_time)))
+        Ok(Value::BulkString(format!("{}-{}", cur_id_mills_time, cur_id_sequence_number)))
     }
 }
 
