@@ -3,6 +3,7 @@ mod response;
 mod commands;
 mod storage;
 mod config;
+mod stream;
 
 use crate::commands::{CommandContext, CommandExecutor};
 use crate::config::{ConfigKey, Configuration};

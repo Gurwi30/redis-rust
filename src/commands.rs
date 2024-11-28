@@ -108,6 +108,34 @@ impl Command for StorageSetCommand {
     }
 }
 
+struct StorageXAddCommand;
+impl Command for StorageXAddCommand {
+    fn name(&self) -> &str {
+        "xadd"
+    }
+
+    fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
+        let key: String = args.first().unwrap().clone().unpack_as_string().unwrap();
+        let id = args[1].clone().unpack_as_string().unwrap();
+        let mut entries: HashMap<String, Value> = HashMap::new();
+
+        for i in args[1..] {
+            if i >= (args.len() - 1) {
+                break;
+            }
+
+            let entry_key = args[i];
+            let entry_value = args[i + 1];
+
+            entries.insert(entry_key, entry_value);
+        }
+
+        context.storage.set(key.as_str(), Value::Stream(entries), None);
+
+        Ok(Value::BulkString(id))
+    }
+}
+
 struct StorageGetCommand;
 impl Command for StorageGetCommand {
     fn name(&self) -> &str {

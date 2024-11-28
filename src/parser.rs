@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use strum_macros::{EnumString, Display};
 use anyhow::anyhow;
 use anyhow::Result;
@@ -20,6 +21,7 @@ pub enum Value {
     Boolean(bool),
     Integer(i64),
     Array(Vec<Value>),
+    Stream(HashMap<String, Value>),
     NullBulkString,
     Null
 }
@@ -33,8 +35,8 @@ impl Value {
             Value::Integer(i) => format!(":{}\r\n", i),
             Value::Array(arr) => format!("*{}\r\n{}", arr.len(), arr.iter().map(|v| v.clone().serialize()).collect::<Vec<_>>().join("")),
             Value::NullBulkString => "$-1\r\n".to_string(),
-            Value::Null => "_\r\n".to_string()
-            //_ => panic!("Tried to serialize unserializable value!")
+            Value::Null => "_\r\n".to_string(),
+            _ => panic!("Tried to serialize unserializable value!")
         }
     }
 
@@ -52,13 +54,14 @@ impl Value {
     pub fn get_type(&self) -> Type {
         match self {
             Value::Array(_) => Type::List,
+            Value::Stream(_) => Type::Stream,
             _ => Type::String,
         }
     }
 
 }
 
-pub(crate) fn parse_message(buffer: BytesMut) -> Result<(Value, usize)> {
+pub fn parse_message(buffer: BytesMut) -> Result<(Value, usize)> {
     match buffer[0] as char {
         '+' => parse_simple_string(buffer),
         '$' => parse_bulk_string(buffer),
