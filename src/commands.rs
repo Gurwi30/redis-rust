@@ -4,7 +4,7 @@ use crate::storage::Storage;
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::ptr::read;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 trait Command: Send + Sync {
     fn name(&self) -> &str;
@@ -289,5 +289,5 @@ fn parse_stream_id(id: String, storage: &mut Storage) -> Result<(i128, i64)> {
         return Ok((milliseconds_time, sequence_number))
     }
 
-    Ok((0, 0))
+    Ok((SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i128, 0))
 }
