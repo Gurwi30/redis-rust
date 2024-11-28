@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use anyhow::Result;
 use bytes::BytesMut;
 
-#[derive(Display, EnumString)]
+#[derive(Display, EnumString, PartialEq)]
 pub enum Type {
     String,
     List,
@@ -21,7 +21,8 @@ pub enum Value {
     Boolean(bool),
     Integer(i64),
     Array(Vec<Value>),
-    Stream(HashMap<String, Value>),
+    Stream(i128, i64, HashMap<String, Value>),
+    SimpleError(String),
     NullBulkString,
     Null
 }
@@ -34,6 +35,7 @@ impl Value {
             Value::Boolean(b) => format!("#{}\r\n", b.to_string().chars().next().unwrap()),
             Value::Integer(i) => format!(":{}\r\n", i),
             Value::Array(arr) => format!("*{}\r\n{}", arr.len(), arr.iter().map(|v| v.clone().serialize()).collect::<Vec<_>>().join("")),
+            Value::SimpleError(s) => format!("-{}\r\n", s),
             Value::NullBulkString => "$-1\r\n".to_string(),
             Value::Null => "_\r\n".to_string(),
             _ => panic!("Tried to serialize unserializable value!")
@@ -46,6 +48,7 @@ impl Value {
             Value::BulkString(s) => Some(s),
             Value::Boolean(b) => Some(b.to_string()),
             Value::Integer(i) => Some(i.to_string()),
+            Value::SimpleError(s) => Some(s),
             Value::Null => Some(String::new()),
             _ => None
         }
@@ -54,7 +57,7 @@ impl Value {
     pub fn get_type(&self) -> Type {
         match self {
             Value::Array(_) => Type::List,
-            Value::Stream(_) => Type::Stream,
+            Value::Stream(_, _, _) => Type::Stream,
             _ => Type::String,
         }
     }

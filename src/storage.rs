@@ -1,4 +1,4 @@
-use crate::parser::Value;
+use crate::parser::{Type, Value};
 use anyhow::{anyhow, Result};
 use bytes::Buf;
 use std::collections::HashMap;
@@ -49,6 +49,14 @@ impl Storage {
         }
     }
 
+    pub fn get_specific(&mut self, value_type: Type) -> Vec<DataContainer> {
+        self.storage
+            .values()
+            .filter(move |data_container| data_container.value.get_type() == value_type)
+            .cloned()
+            .collect()
+    }
+
     pub fn remove(&mut self, key: &str) -> Result<Value> {
         self.storage.remove(key);
         Ok(Value::SimpleString("OK".to_string()))
@@ -59,6 +67,7 @@ impl Storage {
     }
 }
 
+#[derive(Clone)]
 pub struct DataContainer {
     value: Value,
     expire: Option<SystemTime>
