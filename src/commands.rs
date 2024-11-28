@@ -119,13 +119,10 @@ impl Command for StorageXAddCommand {
         let id = args[1].clone().unpack_as_string().unwrap();
         let mut entries: HashMap<String, Value> = HashMap::new();
 
-        for i in args[1..] {
-            if i >= (args.len() - 1) {
-                break;
-            }
+        for i in 2..args.len() - 3 {
 
-            let entry_key = args[i];
-            let entry_value = args[i + 1];
+            let entry_key = args[i].clone().unpack_as_string().unwrap();
+            let entry_value = args[i + 1].clone();
 
             entries.insert(entry_key, entry_value);
         }
