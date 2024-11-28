@@ -141,7 +141,7 @@ impl Command for StorageXAddCommand {
         match last_stream_entry {
             Some(data_container) => {
                 if let Value::Stream(mills_time, sequence_number, _entries) = data_container.get_value() {
-                    if mills_time == 0 && sequence_number == 0 {
+                    if cur_id_mills_time == 0 && cur_id_sequence_number == 0 {
                         return Ok(Value::SimpleError("ERR The ID specified in XADD must be greater than 0-0".to_string()));
                     }
 
