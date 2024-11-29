@@ -6,14 +6,15 @@ use std::fs::File;
 use std::io::Read;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+#[derive(Clone, Debug)]
 pub struct Storage {
-    storage: HashMap<String, DataContainer>
+    values: HashMap<String, DataContainer>
 }
 
 impl Storage {
     pub fn new() -> Storage {
         Storage {
-            storage: HashMap::new()
+            values: HashMap::new()
         }
     }
 
@@ -22,26 +23,30 @@ impl Storage {
 
         Ok(
             Storage {
-                storage: rdb_file.data
+                values: rdb_file.data
             }
         )
     }
 
     pub fn import_data(&mut self, rdb_file: RDBFile) {
-        self.storage.extend(rdb_file.data);
+        self.values.extend(rdb_file.data);
     }
 
     pub fn set(&mut self, key: &str, value: Value, expire: Option<SystemTime>) -> Value {
-        self.storage.insert(key.to_string(), DataContainer::create(value, expire));
+        self.values.insert(key.to_string(), DataContainer::create(value, expire));
         Value::SimpleString("OK".to_string())
     }
 
+    pub fn add_all(&mut self, values: HashMap<String, DataContainer>) {
+        self.values.extend(values)
+    }
+
     pub fn get(&mut self, key: &str) -> Option<Value> {
-        match self.storage.get(key) {
+        match self.values.get(key) {
             Some(container) => if !container.is_expired() {
                 Some(container.get_value())
             } else {
-                self.storage.remove(&key.to_string());
+                self.values.remove(&key.to_string());
                 None
             }
 
@@ -50,7 +55,7 @@ impl Storage {
     }
 
     pub fn get_specific(&mut self, value_type: Type) -> Vec<DataContainer> {
-        self.storage
+        self.values
             .values()
             .filter(move |data_container| data_container.value.get_type() == value_type)
             .cloned()
@@ -58,16 +63,20 @@ impl Storage {
     }
 
     pub fn remove(&mut self, key: &str) -> Result<Value> {
-        self.storage.remove(key);
+        self.values.remove(key);
         Ok(Value::SimpleString("OK".to_string()))
     }
 
     pub fn keys(&self) -> Vec<String> {
-        self.storage.keys().map(|k| k.to_string()).collect()
+        self.values.keys().map(|k| k.to_string()).collect()
+    }
+
+    pub fn get_all(self) -> HashMap<String, DataContainer> {
+        self.values
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DataContainer {
     value: Value,
     expire: Option<SystemTime>

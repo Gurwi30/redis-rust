@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use strum_macros::{EnumString, Display};
+use crate::storage::Storage;
 use anyhow::anyhow;
 use anyhow::Result;
 use bytes::BytesMut;
+use strum_macros::{Display, EnumString};
 
 #[derive(Display, EnumString, PartialEq)]
 pub enum Type {
@@ -21,10 +21,27 @@ pub enum Value {
     Boolean(bool),
     Integer(i64),
     Array(Vec<Value>),
-    Stream(i128, i64, HashMap<String, Value>),
+    Stream(Vec<StreamEntry>),
     SimpleError(String),
     NullBulkString,
     Null
+}
+
+#[derive(Clone, Debug)]
+pub struct StreamEntry {
+    pub millis_time: i128,
+    pub sequence_number: i64,
+    pub storage: Storage
+}
+
+impl StreamEntry {
+    pub fn new(millis_time: i128, sequence_number: i64) -> Self {
+        StreamEntry {
+            millis_time,
+            sequence_number,
+            storage: Storage::new()
+        }
+    }
 }
 
 impl Value {
@@ -57,7 +74,7 @@ impl Value {
     pub fn get_type(&self) -> Type {
         match self {
             Value::Array(_) => Type::List,
-            Value::Stream(_, _, _) => Type::Stream,
+            Value::Stream(_) => Type::Stream,
             _ => Type::String,
         }
     }
