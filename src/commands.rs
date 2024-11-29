@@ -165,7 +165,7 @@ impl Command for StorageXAddCommand {
                 }
             },
 
-            _ => {
+            None => {
                 let (millis, sequence) = parse_stream_id(id,&vec![])?;
 
                 if millis == 0 && sequence == 0 {
@@ -173,15 +173,13 @@ impl Command for StorageXAddCommand {
                 }
 
                 let mut entry = StreamEntry::new(millis, sequence);
-                entry.storage.add_all(values);
-
-                println!("Values added");
-
-                for (key, data) in &entry.storage.get_all() {
+                for (key, data) in &values {
                     println!("key {}, data: {:?}", key, data);
                 }
 
-                //context.storage.set(&key, Value::Stream(vec![entry]), None);
+                entry.storage.add_all(values);
+
+                context.storage.set(&key, Value::Stream(vec![entry]), None);
                 Ok(Value::BulkString(format!("{}-{}", millis, sequence)))
             }
         }
