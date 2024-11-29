@@ -136,13 +136,13 @@ impl Command for StorageXAddCommand {
             let entry_key = args[i].clone().unpack_as_string().unwrap();
             let entry_value = args[i + 1].clone();
 
-            println!("key {}, value {:?}", entry_key, entry_value);
-
             values.insert(entry_key, DataContainer::create(entry_value, None));
         }
 
         match context.storage.get(&key) {
             Some(value) => {
+                println!("Adding to stream");
+
                 if let Value::Stream(entries) = value {
                     let last_entry = entries.last().unwrap();
                     let (millis, sequence) = match parse_stream_id(id, &entries) {
@@ -168,6 +168,8 @@ impl Command for StorageXAddCommand {
             },
 
             None => {
+                println!("Creating stream");
+
                 let (millis, sequence) = parse_stream_id(id,&vec![])?;
 
                 if millis == 0 && sequence == 0 {
