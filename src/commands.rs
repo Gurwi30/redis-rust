@@ -140,8 +140,8 @@ impl Command for StorageXAddCommand {
         }
 
         match context.storage.get(&key) {
-            Some(mut value) => {
-                if let Value::Stream(mut entries) = value {
+            Some(value) => {
+                if let Value::Stream(entries) = value {
                     let last_entry = entries.last().unwrap();
                     let (millis, sequence) = match parse_stream_id(id, &entries) {
                         Ok(values) => values,
@@ -200,15 +200,23 @@ impl Command for StorageXRangeCommand {
         }
 
         let key = args.first().unwrap().clone().unpack_as_string().unwrap();
-        let min = args[1].clone().unpack_as_string().unwrap().parse::<i128>()?; // TODO -> DO BETTER ERROR HANDLING
-        let max = args[2].clone().unpack_as_string().unwrap().parse::<i128>()?; // TODO -> DO BETTER ERROR HANDLING
+        // let min = args[1].clone().unpack_as_string().unwrap().parse::<i128>()?; // TODO -> DO BETTER ERROR HANDLING
+        // let max = args[2].clone().unpack_as_string().unwrap().parse::<i128>()?; // TODO -> DO BETTER ERROR HANDLING
+
+        let min: Vec<i128> = args[1].clone().unpack_as_string().unwrap().split('-')
+            .map(|v| v.parse::<i128>().unwrap())
+            .collect();
+
+        let max: Vec<i128> = args[2].clone().unpack_as_string().unwrap().split('-')
+            .map(|v| v.parse::<i128>().unwrap())
+            .collect();
 
         match context.storage.get(key.as_str()) {
             Some(value) => {
                 if let Value::Stream(stream_entries) = value {
                     let res = Value::Array(
                         stream_entries.iter()
-                            .filter(|entry| entry.millis_time > min && entry.millis_time < max)
+                            .filter(|entry| (entry.millis_time > min[0] && entry.millis_time < max[0]) && (entry.sequence_number > min[1] as i64 && entry.sequence_number < max[1] as i64))
                             .map(|entry| {
                                 Value::Array(vec![
                                     Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
@@ -325,7 +333,7 @@ impl Command for ConfigCommand {
     }
 }
 
-fn parse_stream_id(id: String, mut entries: &Vec<StreamEntry>) -> Result<(i128, i64)> {
+fn parse_stream_id(id: String, entries: &Vec<StreamEntry>) -> Result<(i128, i64)> {
     let splitted_id: Vec<&str> = id.split("-").collect();
 
     if splitted_id.len() > 1 {
