@@ -136,6 +136,8 @@ impl Command for StorageXAddCommand {
             let entry_key = args[i].clone().unpack_as_string().unwrap();
             let entry_value = args[i + 1].clone();
 
+            println!("key {}, value {:?}", entry_key, entry_value);
+
             values.insert(entry_key, DataContainer::create(entry_value, None));
         }
 
@@ -173,10 +175,6 @@ impl Command for StorageXAddCommand {
                 }
 
                 let mut entry = StreamEntry::new(millis, sequence);
-                for (key, data) in &values {
-                    println!("key {}, data: {:?}", key, data);
-                }
-
                 entry.storage.add_all(values);
 
                 context.storage.set(&key, Value::Stream(vec![entry]), None);
