@@ -175,6 +175,8 @@ impl Command for StorageXAddCommand {
                 let mut entry = StreamEntry::new(millis, sequence);
                 entry.storage.add_all(values);
 
+                println!("Values added");
+
                 for (key, data) in &entry.storage.get_all() {
                     println!("key {}, data: {:?}", key, data);
                 }
