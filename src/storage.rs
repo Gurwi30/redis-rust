@@ -2,6 +2,7 @@ use crate::parser::{Type, Value};
 use anyhow::{anyhow, Result};
 use bytes::Buf;
 use std::collections::HashMap;
+use std::env::var;
 use std::fs::File;
 use std::io::Read;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -72,7 +73,7 @@ impl Storage {
     }
 
     pub fn get_all(self) -> HashMap<String, DataContainer> {
-        self.values
+         self.values
     }
 }
 

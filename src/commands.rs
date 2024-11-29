@@ -162,6 +162,8 @@ impl Command for StorageXAddCommand {
                     entry.storage.add_all(values);
                     entries.push(entry);
 
+                    context.storage.set(&key, Value::Stream(entries), None);
+
                     Ok(Value::BulkString(format!("{}-{}", millis, sequence)))
                 } else {
                     Ok(Value::SimpleError("Not a stream!".to_string()))
@@ -219,8 +221,6 @@ impl Command for StorageXRangeCommand {
         match context.storage.get(key.as_str()) {
             Some(value) => {
                 if let Value::Stream(stream_entries) = value {
-                    stream_entries.iter().for_each(|e| println!("{:?}", e));
-
                     let res = Value::Array(
                         stream_entries.iter()
                             .filter(|entry| true) // (entry.millis_time > min[0] && entry.millis_time < max[0]) || (entry.sequence_number > min[1] as i64 && entry.sequence_number < max[1] as i64)
@@ -235,7 +235,7 @@ impl Command for StorageXRangeCommand {
                                                       .flat_map(|(key, data)| {
                                                           vec![
                                                               Value::BulkString(key.to_string()),
-                                                              data.get_value(),
+                                                              data.get_value().clone(),
                                                           ]
                                                       })
                                                       .collect()
