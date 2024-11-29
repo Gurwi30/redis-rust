@@ -132,7 +132,7 @@ impl Command for StorageXAddCommand {
 
         let mut values: HashMap<String, DataContainer> = HashMap::new();
 
-        for i in 2..args.len() - 3 {
+        for i in 2..args.len() - 1 {
             let entry_key = args[i].clone().unpack_as_string().unwrap();
             let entry_value = args[i + 1].clone();
 
