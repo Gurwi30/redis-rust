@@ -54,7 +54,10 @@ impl CommandExecutor {
         self.register(Box::new(EchoCommand));
 
         self.register(Box::new(StorageSetCommand));
+
         self.register(Box::new(StorageXAddCommand));
+        self.register(Box::new(StorageXRangeCommand));
+
         self.register(Box::new(StorageGetCommand));
         self.register(Box::new(StorageKeysCommand));
         self.register(Box::new(StorageValueTypeCommand));
@@ -140,7 +143,10 @@ impl Command for StorageXAddCommand {
             Some(mut value) => {
                 if let Value::Stream(mut entries) = value {
                     let last_entry = entries.last().unwrap();
-                    let (millis, sequence) = parse_stream_id(id, &entries)?;
+                    let (millis, sequence) = match parse_stream_id(id, &entries) {
+                        Ok(values) => values,
+                        _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
+                    };
 
                     if millis == 0 && sequence == 0 {
                         return Ok(Value::SimpleError("ERR The ID specified in XADD must be greater than 0-0".to_string()));
