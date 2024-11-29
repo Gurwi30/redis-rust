@@ -216,7 +216,7 @@ impl Command for StorageXRangeCommand {
                 if let Value::Stream(stream_entries) = value {
                     let res = Value::Array(
                         stream_entries.iter()
-                            .filter(|entry| true)
+                            .filter(|entry| true) // (entry.millis_time > min[0] && entry.millis_time < max[0]) || (entry.sequence_number > min[1] as i64 && entry.sequence_number < max[1] as i64)
                             .map(|entry| {
                                 Value::Array(vec![
                                     Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
@@ -226,6 +226,8 @@ impl Command for StorageXRangeCommand {
                                                       .get_all()
                                                       .iter()
                                                       .flat_map(|(key, data)| {
+                                                          println!("key: {}, value {}", key, data.get_value().unpack_as_string().unwrap());
+
                                                           vec![
                                                               Value::BulkString(key.to_string()),
                                                               data.get_value(),
