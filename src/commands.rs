@@ -141,7 +141,7 @@ impl Command for StorageXAddCommand {
 
         match context.storage.get(&key) {
             Some(value) => {
-                if let Value::Stream(entries) = value {
+                if let Value::Stream(mut entries) = value {
                     let last_entry = entries.last().unwrap();
                     let (millis, sequence) = match parse_stream_id(id, &entries) {
                         Ok(values) => values,
@@ -160,6 +160,7 @@ impl Command for StorageXAddCommand {
 
                     let mut entry = StreamEntry::new(millis, sequence);
                     entry.storage.add_all(values);
+                    entries.push(entry);
 
                     Ok(Value::BulkString(format!("{}-{}", millis, sequence)))
                 } else {
