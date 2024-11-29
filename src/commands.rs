@@ -187,11 +187,6 @@ impl Command for StorageXAddCommand {
             }
         }
 
-        // let split_id = &id.split("-").collect::<Vec<&str>>();
-        // let (cur_id_mills_time, cur_id_sequence_number) = match (split_id[0].parse::<i128>(), split_id[1].parse::<i64>()) {
-        //     (Ok(mills_time), Ok(sequence_number)) => (mills_time, sequence_number),
-        //     _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
-        // };
     }
 }
 
@@ -223,7 +218,7 @@ impl Command for StorageXRangeCommand {
                 if let Value::Stream(stream_entries) = value {
                     let res = Value::Array(
                         stream_entries.iter()
-                            .filter(|entry| true) // (entry.millis_time > min[0] && entry.millis_time < max[0]) || (entry.sequence_number > min[1] as i64 && entry.sequence_number < max[1] as i64)
+                            .filter(|entry| (entry.millis_time > min[0] && entry.millis_time < max[0]) || (entry.sequence_number > min[1] as i64 && entry.sequence_number < max[1] as i64))
                             .map(|entry| {
                                 Value::Array(vec![
                                     Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
