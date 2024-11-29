@@ -141,14 +141,14 @@ impl Command for StorageXAddCommand {
 
         match context.storage.get(&key) {
             Some(value) => {
-                println!("Adding to stream");
-
                 if let Value::Stream(entries) = value {
                     let last_entry = entries.last().unwrap();
                     let (millis, sequence) = match parse_stream_id(id, &entries) {
                         Ok(values) => values,
                         _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
                     };
+
+                    println!("Adding to stream {}-{}", millis, sequence)
 
                     if millis == 0 && sequence == 0 {
                         return Ok(Value::SimpleError("ERR The ID specified in XADD must be greater than 0-0".to_string()));
@@ -168,9 +168,9 @@ impl Command for StorageXAddCommand {
             },
 
             None => {
-                println!("Creating stream");
-
                 let (millis, sequence) = parse_stream_id(id,&vec![])?;
+
+                println!("Creating stream {}-{}", millis, sequence);
 
                 if millis == 0 && sequence == 0 {
                     return Ok(Value::SimpleError("ERR The ID specified in XADD must be greater than 0-0".to_string()));
