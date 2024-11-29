@@ -176,6 +176,11 @@ impl Command for StorageXAddCommand {
                 entry.storage.add_all(values);
 
                 context.storage.set(&key, Value::Stream(vec![entry]), None);
+
+                for (key, data) in entry.storage.get_all() {
+                    println!("key {}, data: {:?}", key, data);
+                }
+
                 Ok(Value::BulkString(format!("{}-{}", millis, sequence)))
             }
         }
@@ -226,8 +231,6 @@ impl Command for StorageXRangeCommand {
                                                       .get_all()
                                                       .iter()
                                                       .flat_map(|(key, data)| {
-                                                          println!("key: {}, value {}", key, data.get_value().unpack_as_string().unwrap());
-
                                                           vec![
                                                               Value::BulkString(key.to_string()),
                                                               data.get_value(),
