@@ -162,8 +162,6 @@ impl Command for StorageXAddCommand {
                     entry.storage.add_all(values);
                     entries.push(entry);
 
-                    entries.push(last_entry.clone());
-
                     Ok(Value::BulkString(format!("{}-{}", millis, sequence)))
                 } else {
                     Ok(Value::SimpleError("Not a stream!".to_string()))
