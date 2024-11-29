@@ -148,7 +148,7 @@ impl Command for StorageXAddCommand {
                         _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
                     };
 
-                    println!("Adding to stream {}-{}", millis, sequence)
+                    println!("Adding to stream {}-{}", millis, sequence);
 
                     if millis == 0 && sequence == 0 {
                         return Ok(Value::SimpleError("ERR The ID specified in XADD must be greater than 0-0".to_string()));
