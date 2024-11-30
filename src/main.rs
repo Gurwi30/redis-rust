@@ -1,8 +1,8 @@
 mod parser;
 mod response;
-mod commands;
 mod storage;
 mod config;
+mod commands;
 
 use crate::commands::{CommandContext, CommandExecutor};
 use crate::config::{ConfigKey, Configuration};

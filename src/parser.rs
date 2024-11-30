@@ -43,7 +43,7 @@ impl StreamEntry {
         }
     }
 
-    pub fn as_value(&self) -> Value {
+    pub fn as_array_value(&self) -> Value {
         Value::Array(vec![
             Value::BulkString(format!("{}-{}", self.millis_time, self.sequence_number)),
             Value::Array(
