@@ -165,15 +165,14 @@ impl Command for StorageXReadCommand {
                                 .map(|entry| entry.as_array_value())
                                 .collect::<Vec<Value>>()
                                 .first() {
+                                    Some(entry) => {
+                                        Ok(entry.clone())
+                                    }
 
-                                Some(entry) => {
-                                    Ok(entry.clone())
+                                    None => {
+                                        Ok(Value::NullBulkString)
+                                    }
                                 }
-
-                                None => {
-                                    Ok(Value::NullBulkString)
-                                }
-                            }
                         } else {
                             Ok(Value::SimpleError("Not a stream!".to_string()))
                         }
