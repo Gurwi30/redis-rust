@@ -266,6 +266,69 @@ impl Command for StorageXRangeCommand {
     }
 }
 
+struct StorageXReadCommand;
+impl Command for StorageXReadCommand {
+    fn name(&self) -> &str {
+        "xread"
+    }
+
+    fn exec(&self, args: Vec<Value>, context: &mut CommandContext) -> Result<Value> {
+        if args.len() < 3 {
+            return Ok(Value::SimpleError("Missing arguments! Correct usage XREAD <type> <key> <id>".to_string()));
+        }
+
+        let read_type = args.first().unwrap().clone().unpack_as_string().unwrap().to_lowercase();
+        let key = args[1].clone().unpack_as_string().unwrap();
+        let id = args[2].clone().unpack_as_string().unwrap();
+
+        match context.storage.get(&key) {
+            Some(value) => {
+                match read_type.as_str() {
+                    "streams" => {
+                        if let Value::Stream(stream_entries) = value {
+                            match stream_entries.iter()
+                                .filter(|entry| format!("{}-{}", entry.millis_time, entry.sequence_number) == id)
+                                .map(|entry| {
+                                    Value::Array(vec![
+                                        Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
+                                        Value::Array(
+                                            entry.clone()
+                                                .storage
+                                                .get_all()
+                                                .iter()
+                                                .flat_map(|(key, data)| {
+                                                    vec![
+                                                        Value::BulkString(key.to_string()),
+                                                        data.get_value().clone(),
+                                                    ]
+                                                })
+                                                .collect()
+                                        ),
+                                    ])
+                                })
+                                .next() {
+
+                                Some(entry) => {
+                                    Ok(entry)
+                                }
+                                None => {
+                                    Ok(Value::NullBulkString)
+                                }
+                            }
+                        } else {
+                            Ok(Value::SimpleError("Not a stream!".to_string()))
+                        }
+                    }
+
+                    _ => Ok(Value::SimpleError("Invalid type!".to_string()))
+                }
+            }
+
+            None => Ok(Value::NullBulkString),
+        }
+    }
+}
+
 struct StorageGetCommand;
 impl Command for StorageGetCommand {
     fn name(&self) -> &str {
