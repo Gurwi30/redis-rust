@@ -163,10 +163,11 @@ impl Command for StorageXReadCommand {
                             match stream_entries.iter()
                                 .filter(|entry| entry.millis_time == millis_time && entry.sequence_number == sequence_number)
                                 .map(|entry| entry.as_array_value())
-                                .next() {
+                                .collect::<Vec<Value>>()
+                                .first() {
 
                                 Some(entry) => {
-                                    Ok(entry)
+                                    Ok(entry.clone())
                                 }
 
                                 None => {
