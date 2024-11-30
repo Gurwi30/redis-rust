@@ -202,38 +202,53 @@ impl Command for StorageXRangeCommand {
         }
 
         let key = args.first().unwrap().clone().unpack_as_string().unwrap();
-        // let min = args[1].clone().unpack_as_string().unwrap().parse::<i128>()?; // TODO -> DO BETTER ERROR HANDLING
-        // let max = args[2].clone().unpack_as_string().unwrap().parse::<i128>()?; // TODO -> DO BETTER ERROR HANDLING
+        let min_arg = args[1].clone().unpack_as_string().unwrap();
+        let max_arg = args[2].clone().unpack_as_string().unwrap();
 
-        let min: Vec<i128> = args[1].clone().unpack_as_string().unwrap().split('-')
-            .map(|v| v.parse::<i128>().unwrap())
-            .collect();
+        let min: Option<Vec<i128>> = if min_arg.len() == 1 && min_arg.chars().next().unwrap() == '-' {
+            None
+        } else {
+            Some(
+                min_arg.split('-')
+                    .map(|v| v.parse::<i128>().unwrap())
+                    .collect()
+            )
+        };
 
-        let max: Vec<i128> = args[2].clone().unpack_as_string().unwrap().split('-')
-            .map(|v| v.parse::<i128>().unwrap())
-            .collect();
+        let max: Option<Vec<i128>> = if max_arg.len() == 1 && max_arg.chars().next().unwrap() == '+' {
+            None
+        } else {
+            Some(
+                min_arg.split('-')
+                    .map(|v| v.parse::<i128>().unwrap())
+                    .collect()
+            )
+        };
 
         match context.storage.get(key.as_str()) {
             Some(value) => {
                 if let Value::Stream(stream_entries) = value {
                     let res = Value::Array(
                         stream_entries.iter()
-                            .filter(|entry| (entry.millis_time >= min[0] && entry.millis_time <= max[0]) && (entry.sequence_number >= min[1] as i64 && entry.sequence_number <= max[1] as i64))
+                            .filter(|entry|
+                                    min.as_ref().map(|m| entry.millis_time >= m[0] && entry.sequence_number >= m[1] as i64).unwrap_or(true) &&
+                                    max.as_ref().map(|m| entry.millis_time <= m[0] && entry.sequence_number <= m[1] as i64).unwrap_or(true)
+                            ) // ((min != None && entry.millis_time >= min.unwrap()[0]) && (max != None && entry.millis_time <= max.unwrap()[0])) && (entry.sequence_number >= min.unwrap()[1] as i64 && entry.sequence_number <= max.unwrap()[1] as i64)
                             .map(|entry| {
                                 Value::Array(vec![
                                     Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
                                     Value::Array(
-                                                  entry.clone()
-                                                      .storage
-                                                      .get_all()
-                                                      .iter()
-                                                      .flat_map(|(key, data)| {
-                                                          vec![
-                                                              Value::BulkString(key.to_string()),
-                                                              data.get_value().clone(),
-                                                          ]
-                                                      })
-                                                      .collect()
+                                        entry.clone()
+                                            .storage
+                                            .get_all()
+                                            .iter()
+                                            .flat_map(|(key, data)| {
+                                                vec![
+                                                    Value::BulkString(key.to_string()),
+                                                    data.get_value().clone(),
+                                                ]
+                                            })
+                                            .collect()
                                     ),
                                 ])
                             })
@@ -361,75 +376,8 @@ fn parse_stream_id(id: String, entries: &Vec<StreamEntry>) -> Result<(i128, i64)
             splitted_id[1].parse()?
         };
 
-        // let sequence_number: i64 = if splitted_id[1].starts_with('*') {
-        //     storage
-        //         .get_specific(Type::Stream)
-        //         .iter()
-        //         .filter_map(|data| {
-        //             if let Value::Stream(mills, sequence, _) = data.get_value() {
-        //                 if mills == milliseconds_time {
-        //                     return Some(sequence + 1);
-        //                 }
-        //             }
-        //
-        //             None
-        //         })
-        //         .last()
-        //         .unwrap_or(def_sequence_value)
-        // } else {
-        //     splitted_id[1].parse()?
-        // };
-
         return Ok((milliseconds_time, sequence_number))
     }
 
     Ok((SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i128, 0))
 }
-
-// let last_stream_entry
-//
-// let (cur_id_mills_time, cur_id_sequence_number) = match parse_stream_id(id, &mut context.storage) {
-//     Ok(values) => values,
-//     _ => return Ok(Value::SimpleError("The ID must have both values as integers! Example: 1-1".to_string(), ))
-// };
-//
-// match last_stream_entry {
-//     Some(data_container) => {
-//         if let Value::Stream(mills_time, sequence_number, _entries) = data_container.get_value() {
-//             if cur_id_mills_time == 0 && cur_id_sequence_number == 0 {
-//                 return Ok(Value::SimpleError("ERR The ID specified in XADD must be greater than 0-0".to_string()));
-//             }
-//
-//             if (cur_id_mills_time == mills_time && cur_id_sequence_number == sequence_number) || cur_id_mills_time < mills_time {
-//                 return Ok(Value::SimpleError("ERR The ID specified in XADD is equal or smaller than the target stream top item".to_string()));
-//             }
-//         }
-//     }
-//     _ => {}
-// }
-//
-// let mut entries: HashMap<String, DataContainer> = HashMap::new();
-//
-// for i in 2..args.len() - 3 {
-//     let entry_key = args[i].clone().unpack_as_string().unwrap();
-//     let entry_value = args[i + 1].clone();
-//
-//     entries.insert(entry_key, DataContainer::create(entry_value, None));
-// }
-//
-// let mut new_entry = StreamEntry::new(cur_id_mills_time, cur_id_sequence_number);
-// new_entry.storage.add_all(entries);
-//
-// match context.storage.get(key.as_str()) {
-//     Some(value) => {
-//         if let Value::Stream(mut stream_entries) = value {
-//             stream_entries.push(new_entry);
-//         }
-//     },
-//
-//     _ => {
-//         context.storage.set(key.as_str(), Value::Stream(vec![new_entry]), None);
-//     }
-// }
-//
-// Ok(Value::BulkString(format!("{}-{}", cur_id_mills_time, cur_id_sequence_number)))
