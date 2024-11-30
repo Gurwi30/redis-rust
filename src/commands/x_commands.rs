@@ -160,14 +160,12 @@ impl Command for StorageXReadCommand {
                 match read_type.as_str() {
                     "streams" => {
                         if let Value::Stream(stream_entries) = value {
-                            match stream_entries.iter()
-                                .filter(|entry| entry.millis_time >= millis_time && entry.sequence_number >= sequence_number)
-                                .map(|entry| entry.as_array_value())
-                                .collect::<Vec<Value>>()
-                                .first() {
-                                    Some(entry) => Ok(entry.clone()),
-                                    None => Ok(Value::Array(vec![]))
-                                }
+                            Ok(Value::Array(
+                                stream_entries.iter()
+                                    .filter(|entry| entry.millis_time >= millis_time && entry.sequence_number >= sequence_number)
+                                    .map(|entry| entry.as_array_value())
+                                    .collect::<Vec<Value>>()
+                            ))
                         } else {
                             Ok(Value::SimpleError("Not a stream!".to_string()))
                         }
