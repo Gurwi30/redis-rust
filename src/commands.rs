@@ -57,6 +57,7 @@ impl CommandExecutor {
 
         self.register(Box::new(StorageXAddCommand));
         self.register(Box::new(StorageXRangeCommand));
+        self.register(Box::new(StorageXReadCommand));
 
         self.register(Box::new(StorageGetCommand));
         self.register(Box::new(StorageKeysCommand));
