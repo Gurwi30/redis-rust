@@ -219,7 +219,7 @@ impl Command for StorageXRangeCommand {
             None
         } else {
             Some(
-                min_arg.split('-')
+                max_arg.split('-')
                     .map(|v| v.parse::<i128>().unwrap())
                     .collect()
             )
