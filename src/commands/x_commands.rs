@@ -160,8 +160,6 @@ impl Command for StorageXReadCommand {
                 match read_type.as_str() {
                     "streams" => {
                         if let Value::Stream(stream_entries) = value {
-                            println!("{:?}", stream_entries);
-
                             match stream_entries.iter()
                                 .filter(|entry| entry.millis_time == millis_time && entry.sequence_number == sequence_number)
                                 .map(|entry| entry.as_array_value())
@@ -172,7 +170,7 @@ impl Command for StorageXReadCommand {
                                     }
 
                                     None => {
-                                        Ok(Value::NullBulkString)
+                                        Ok(Value::Array(vec![]))
                                     }
                                 }
                         } else {
