@@ -182,7 +182,10 @@ impl Command for StorageXReadCommand {
                 }
             }
 
-            None => Ok(Value::NullBulkString),
+            None => {
+                println!("No value found for key {}", key);
+                Ok(Value::NullBulkString)
+            },
         }
     }
 }
