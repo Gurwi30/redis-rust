@@ -164,7 +164,7 @@ impl Command for StorageXReadCommand {
                                 stream_entries.iter()
                                     .filter(|entry| entry.millis_time >= millis_time && entry.sequence_number >= sequence_number)
                                     .map(|entry| {
-                                        println!("{:?}", entry.as_array_value().unpack_as_string().unwrap());
+                                        println!("{:?}", entry.as_array_value().serialize());
                                         entry.as_array_value()
                                     })
                                     .collect::<Vec<Value>>()
