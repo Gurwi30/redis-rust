@@ -161,7 +161,7 @@ impl Command for StorageXReadCommand {
                     "streams" => {
                         if let Value::Stream(stream_entries) = value {
                             match stream_entries.iter()
-                                .filter(|entry| entry.millis_time == millis_time && entry.sequence_number == sequence_number)
+                                .filter(|entry| entry.millis_time >= millis_time && entry.sequence_number >= sequence_number)
                                 .map(|entry| entry.as_array_value())
                                 .collect::<Vec<Value>>()
                                 .first() {
