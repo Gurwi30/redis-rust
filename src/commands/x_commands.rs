@@ -165,13 +165,8 @@ impl Command for StorageXReadCommand {
                                 .map(|entry| entry.as_array_value())
                                 .collect::<Vec<Value>>()
                                 .first() {
-                                    Some(entry) => {
-                                        Ok(entry.clone())
-                                    }
-
-                                    None => {
-                                        Ok(Value::Array(vec![]))
-                                    }
+                                    Some(entry) => Ok(entry.clone()),
+                                    None => Ok(Value::Array(vec![]))
                                 }
                         } else {
                             Ok(Value::SimpleError("Not a stream!".to_string()))
