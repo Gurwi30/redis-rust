@@ -42,6 +42,25 @@ impl StreamEntry {
             storage: Storage::new()
         }
     }
+
+    pub fn as_value(&self) -> Value {
+        Value::Array(vec![
+            Value::BulkString(format!("{}-{}", self.millis_time, self.sequence_number)),
+            Value::Array(
+                self.clone()
+                    .storage
+                    .get_all()
+                    .iter()
+                    .flat_map(|(key, data)| {
+                        vec![
+                            Value::BulkString(key.to_string()),
+                            data.get_value().clone(),
+                        ]
+                    })
+                    .collect()
+            ),
+        ])
+    }
 }
 
 impl Value {

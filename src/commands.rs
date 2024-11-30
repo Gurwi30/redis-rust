@@ -235,24 +235,7 @@ impl Command for StorageXRangeCommand {
                                     min.as_ref().map(|m| entry.millis_time >= m[0] && entry.sequence_number >= m[1] as i64).unwrap_or(true) &&
                                     max.as_ref().map(|m| entry.millis_time <= m[0] && entry.sequence_number <= m[1] as i64).unwrap_or(true)
                             ) // ((min != None && entry.millis_time >= min.unwrap()[0]) && (max != None && entry.millis_time <= max.unwrap()[0])) && (entry.sequence_number >= min.unwrap()[1] as i64 && entry.sequence_number <= max.unwrap()[1] as i64)
-                            .map(|entry| {
-                                Value::Array(vec![
-                                    Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
-                                    Value::Array(
-                                        entry.clone()
-                                            .storage
-                                            .get_all()
-                                            .iter()
-                                            .flat_map(|(key, data)| {
-                                                vec![
-                                                    Value::BulkString(key.to_string()),
-                                                    data.get_value().clone(),
-                                                ]
-                                            })
-                                            .collect()
-                                    ),
-                                ])
-                            })
+                            .map(|entry| entry.as_value())
                             .collect()
                     );
 
@@ -289,33 +272,16 @@ impl Command for StorageXReadCommand {
                         if let Value::Stream(stream_entries) = value {
                             match stream_entries.iter()
                                 .filter(|entry| format!("{}-{}", entry.millis_time, entry.sequence_number) == id)
-                                .map(|entry| {
-                                    Value::Array(vec![
-                                        Value::BulkString(format!("{}-{}", entry.millis_time, entry.sequence_number)),
-                                        Value::Array(
-                                            entry.clone()
-                                                .storage
-                                                .get_all()
-                                                .iter()
-                                                .flat_map(|(key, data)| {
-                                                    vec![
-                                                        Value::BulkString(key.to_string()),
-                                                        data.get_value().clone(),
-                                                    ]
-                                                })
-                                                .collect()
-                                        ),
-                                    ])
-                                })
+                                .map(|entry| entry.as_value())
                                 .next() {
 
-                                Some(entry) => {
-                                    Ok(entry)
+                                    Some(entry) => {
+                                        Ok(entry)
+                                    }
+                                    None => {
+                                        Ok(Value::NullBulkString)
+                                    }
                                 }
-                                None => {
-                                    Ok(Value::NullBulkString)
-                                }
-                            }
                         } else {
                             Ok(Value::SimpleError("Not a stream!".to_string()))
                         }
